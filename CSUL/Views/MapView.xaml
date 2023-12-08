@@ -57,7 +57,7 @@
                             <Label Grid.Column="1" Content="{Binding Cid}" HorizontalAlignment="Center" />
                             <Label Grid.Column="2" Content="{Binding LastWriteTime}" HorizontalAlignment="Center" />
                             <Label Grid.Column="3" Content="{Binding DataType}" HorizontalAlignment="Center" />
-                            <Button Grid.Column="4" Content="{StaticResource Delete}"
+                            <Button Grid.Column="4" Content="{DynamicResource Delete}"
                                     Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.DeleteCommand}"
                                     CommandParameter="{Binding RelativeSource={RelativeSource Mode=Self}, Path=DataContext}" />
                         </Grid>

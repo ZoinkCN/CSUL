@@ -14,7 +14,7 @@
     </UserControl.DataContext>
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Loaded">
-            <i:InvokeCommandAction Command="{Binding Refresh}" />
+            <i:InvokeCommandAction Command="{Binding RefreshCommand}" />
         </i:EventTrigger>
     </i:Interaction.Triggers>
 

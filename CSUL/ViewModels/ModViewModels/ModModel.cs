@@ -368,7 +368,7 @@ namespace CSUL.ViewModels.ModViewModels
         {
             List<ModInfo> modInfos = new List<ModInfo>();
             FileInfo[] files = FileManager.Instance.ModDir.GetFiles("*.dll*");
-            modInfos.AddRange(from file in files select FromFile(file));
+            modInfos.AddRange(FromFiles(files));
             DirectoryInfo[] dirs = FileManager.Instance.ModDir.GetDirectories();
             modInfos.AddRange(FromDirectories(dirs));
             CheckDuplication(modInfos);
@@ -540,6 +540,19 @@ namespace CSUL.ViewModels.ModViewModels
         public static ModInfo? FromFile(FileInfo file)
         {
             return GetModFromFile(file);
+        }
+
+        /// <summary>
+        /// 从多个dll文件获取Mod信息
+        /// </summary>
+        /// <param name="file">dll文件路径</param>
+        public static IEnumerable<ModInfo> FromFiles(IEnumerable<FileInfo> files)
+        {
+            foreach (FileInfo file in files)
+            {
+                ModInfo? mod = GetModFromFile(file);
+                if (mod != null) yield return mod;
+            }
         }
 
         /// <summary>

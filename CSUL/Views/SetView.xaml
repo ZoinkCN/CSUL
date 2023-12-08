@@ -37,13 +37,13 @@
                 <TextBox Text="{Binding GamePath}" />
                 <Label Content="{DynamicResource GameDataRoot}"/>
                 <TextBox Text="{Binding GameData}" />
+                <Label Content="{DynamicResource SteamPath}" />
+                <TextBox Text="{Binding SteamPath}" />
                 <Label Content="{DynamicResource StartPar}"/>
                 <TextBox Text="{Binding StartArgument}" />
                 <Label Content="{DynamicResource Language}"/>
                 <ComboBox HorizontalAlignment="Left" Width="150" Margin="6,0,0,0" ItemsSource="{x:Static md:LanguageManager.Languages}"
                           DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding Language}"/>
-                <Label Content="{StaticResource SteamPath}" />
-                <TextBox Text="{Binding SteamPath}" />
             </StackPanel>
         </Border>
         <Border Grid.Row="1" Margin="0,5,0,0" Background="{DynamicResource DefaultBrush}" Height="150" VerticalAlignment="Bottom">
@@ -85,7 +85,7 @@
                         </StackPanel>
                         <Label HorizontalAlignment="Center">By 科幻大脑</Label>
                         <Label FontSize="16" HorizontalAlignment="Center">
-                            <TextBlock TextDecorations="Underline" Text="{StaticResource vMe50}"/>
+                            <TextBlock TextDecorations="Underline" Text="{DynamicResource vMe50}"/>
                         </Label>
                     </StackPanel>
                 </Grid>
