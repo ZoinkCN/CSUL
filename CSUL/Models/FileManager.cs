@@ -11,6 +11,12 @@ namespace CSUL.Models
     /// </summary>
     public class FileManager : IDisposable
     {
+        public struct BepInExVersion
+        {
+            public Version? ActiveVersion;
+            public Version? OffVersion;
+        }
+
         /// <summary>
         /// 配置文件路径
         /// </summary>
@@ -98,7 +104,8 @@ namespace CSUL.Models
         private DirectoryInfo gameDataDir = default!;
         private DirectoryInfo mapDir = default!;
         private DirectoryInfo saveDir = default!;
-        private DirectoryInfo bepInExDir = default!;
+        private DirectoryInfo activeBepInExDir = default!;
+        private DirectoryInfo offBepInExDir = default!;
         private DirectoryInfo modDir = default!;
 
         #endregion ---私有字段---
@@ -154,10 +161,19 @@ namespace CSUL.Models
         /// <summary>
         /// 模组加载器文件夹
         /// </summary>
-        public DirectoryInfo BepInExDir
+        public DirectoryInfo ActiveBepInExDir
         {
-            get => bepInExDir = new(bepInExDir.FullName);
-            set => SetDirInfo(ref bepInExDir, value);
+            get => activeBepInExDir = new(activeBepInExDir.FullName);
+            set => SetDirInfo(ref activeBepInExDir, value);
+        }
+
+        /// <summary>
+        /// 模组加载器文件夹
+        /// </summary>
+        public DirectoryInfo OffBepInExDir
+        {
+            get => offBepInExDir = new(offBepInExDir.FullName);
+            set => SetDirInfo(ref offBepInExDir, value);
         }
 
         /// <summary>
@@ -181,25 +197,20 @@ namespace CSUL.Models
         }
 
         /// <summary>
-        /// 获取BepInEx的版本号
+        /// 获取已激活BepInEx的版本号
         /// </summary>
-        public Version? BepVersion
+        public Version? ActiveBepVersion
         {
             get
             {
                 try
                 {
-                    DirectoryInfo coreDir = new(Path.Combine(BepInExDir.FullName, "core"));
+                    DirectoryInfo coreDir = new(Path.Combine(ActiveBepInExDir.FullName, "core"));
                     if (!coreDir.Exists) return null;
                     FileInfo? bepFile = coreDir.GetFiles().FirstOrDefault(x =>
                         x.Name.StartsWith("BepInEx") && x.Name.EndsWith(".dll"));
                     if (bepFile == null) return null;
-                    //Assembly assembly = Assembly.LoadFrom(bepFile.FullName);
-                    //AssemblyName? bep = assembly.GetReferencedAssemblies().FirstOrDefault(x =>
-                    //    x.Name?.Contains("BepInEx") is true);
-                    //Version? version = bep?.Version;
-
-                    //下面这种方法比较高效
+                    
                     FileVersionInfo fileVersion = FileVersionInfo.GetVersionInfo(bepFile.FullName);
                     string? version = fileVersion.FileVersion;
                     return version is null ? null : new Version(version);
@@ -211,6 +222,31 @@ namespace CSUL.Models
             }
         }
 
+        /// <summary>
+        /// 获取已关闭BepInEx的版本号
+        /// </summary>
+        public Version? OffBepVersion
+        {
+            get
+            {
+                try
+                {
+                    DirectoryInfo coreDir = new(Path.Combine(OffBepInExDir.FullName, "core"));
+                    if (!coreDir.Exists) return null;
+                    FileInfo? bepFile = coreDir.GetFiles().FirstOrDefault(x =>
+                        x.Name.StartsWith("BepInEx") && x.Name.EndsWith(".dll"));
+                    if (bepFile == null) return null;
+
+                    FileVersionInfo fileVersion = FileVersionInfo.GetVersionInfo(bepFile.FullName);
+                    string? version = fileVersion.FileVersion;
+                    return version is null ? null : new Version(version);
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+        }
         /// <summary>
         /// 游戏路径
         /// </summary>
@@ -246,9 +282,10 @@ namespace CSUL.Models
         /// </summary>
         private void SetOtherRootDir()
         {
-            BepInExDir = new(Path.Combine(GameRootDir.FullName, "BepInEx"));
+            ActiveBepInExDir = new(Path.Combine(GameRootDir.FullName, "BepInEx"));
+            OffBepInExDir = new(Path.Combine(GameRootDir.FullName, "BepInExOff"));
             GamePath = Path.Combine(GameRootDir.FullName, "Cities2.exe");
-            ModDir = new(Path.Combine(BepInExDir.FullName, "plugins"));
+            ModDir = new(Path.Combine(ActiveBepInExDir.FullName, "plugins"));
         }
 
         #endregion ---私有方法---

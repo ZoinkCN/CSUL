@@ -103,12 +103,10 @@ namespace CSUL.Models
             {
                 string lang = Path.GetFileNameWithoutExtension(file.Name);
                 lang = lang.ToLower();
-                Trace.WriteLine(lang);
                 try
                 {
                     CultureInfo culture = CultureInfo.GetCultureInfo(lang.Replace("_", "-"));
                     dict.Add(lang, culture.NativeName);
-                    Trace.WriteLine($"{culture.Name}: {culture.NativeName}");
                 }
                 catch { }
             }

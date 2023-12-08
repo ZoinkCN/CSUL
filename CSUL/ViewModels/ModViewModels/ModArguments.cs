@@ -30,7 +30,7 @@ namespace CSUL.ViewModels.ModViewModels
 
         #region ---BepInEx的版本---
 
-        private Version? bepVersion = FileManager.Instance.BepVersion;
+        private Version? bepVersion = FileManager.Instance.ActiveBepVersion;
 
         public Version? BepVersion
         {
@@ -115,6 +115,11 @@ namespace CSUL.ViewModels.ModViewModels
         /// 禁用mod命令
         /// </summary>
         public ICommand DisableCommand { get; }
+
+        /// <summary>
+        /// 禁用mod命令
+        /// </summary>
+        public ICommand SwitchBepCommand { get; }
 
         #endregion ---Commands---
     }

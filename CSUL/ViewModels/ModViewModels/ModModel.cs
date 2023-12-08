@@ -15,6 +15,8 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Text.RegularExpressions;
+using System.Globalization;
 
 namespace CSUL.ViewModels.ModViewModels
 {   //ModModel 构造函数、方法、子类
@@ -164,12 +166,72 @@ namespace CSUL.ViewModels.ModViewModels
             RefreshCommand = new RelayCommand(Refresh);
             DisableCommand = new RelayCommand(Disable);
             EnableCommand = new RelayCommand(Enable);
+            SwitchBepCommand = new RelayCommand(SwitchBep);
             RefreshData();
         }
 
         #endregion ---构造函数---
 
         #region ---ICommand方法---
+        /// <summary>
+        /// 切换BepInEx版本
+        /// </summary>
+        /// <param name="sender"></param>
+        private void SwitchBep(object? sender)
+        {
+            string offDirName = "BepInExOff";
+            string winhttpoffName = "winhttp.dlloff";
+            string doorstopoffName = "doorstop_config.inioff";
+
+            string bepDirName = "BepInEx";
+            string winhttpName = "winhttp.dll";
+            string doorstopName = "doorstop_config.ini";
+
+            DirectoryInfo gameDir = FileManager.Instance.GameRootDir;
+
+            DirectoryInfo bepDir = FileManager.Instance.ActiveBepInExDir;
+            FileInfo winhttp = new FileInfo(Path.Combine(gameDir.FullName, winhttpName));
+            FileInfo doorstop = new FileInfo(Path.Combine(gameDir.FullName, doorstopName));
+
+            DirectoryInfo? tempBepDir;
+            try
+            {
+                tempBepDir = RenameFileOrDir(bepDir, "BepInExTemp") as DirectoryInfo;
+            }
+            catch (Exception e)
+            {
+                string message = "";
+                if (Regex.IsMatch(e.Message, @"Access to the path.*is denied"))
+                    message = $"{bepDir.FullName} 访问被拒绝。\n"+
+                        "常见原因：\n"+
+                        "    - 打开了BepInEx下的子文件夹，请关闭资源管理器。\n"+
+                        "    - 你正在编辑mod的配置文件，请将其关闭。\n"+
+                        "    - 游戏正在运行，请退出游戏。\n" +
+                        "    - 存在其他BepInEx下文件占用情况，请进行检查并解除占用。\n" +
+                        "请检查是否存在上述情况，操作完成后再试一次。";
+                MessageBox.Show(message, "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            FileInfo? winhttptemp = RenameFileOrDir(winhttp, "winhttp.dlltemp") as FileInfo;
+            FileInfo? doorstoptemp = RenameFileOrDir(doorstop, "doorstop_config.initemp") as FileInfo;
+
+            DirectoryInfo offBepDir = FileManager.Instance.OffBepInExDir;
+            FileInfo winhttpoff = new FileInfo(Path.Combine(gameDir.FullName, winhttpoffName));
+            FileInfo doorstopoff = new FileInfo(Path.Combine(gameDir.FullName, doorstopoffName));
+
+            FileManager.Instance.ActiveBepInExDir = (RenameFileOrDir(offBepDir, bepDirName) as DirectoryInfo)!;
+            RenameFileOrDir(winhttpoff, winhttpName);
+            RenameFileOrDir(doorstopoff, doorstopName);
+
+            FileManager.Instance.OffBepInExDir = (RenameFileOrDir(tempBepDir, offDirName) as DirectoryInfo)!;
+            RenameFileOrDir(winhttptemp, winhttpoffName);
+            RenameFileOrDir(doorstoptemp, doorstopoffName);
+
+            BepVersion = FileManager.Instance.ActiveBepVersion;
+            RefreshData();
+        }
+
         /// <summary>
         /// 禁用mod
         /// </summary>
@@ -254,7 +316,7 @@ namespace CSUL.ViewModels.ModViewModels
                 RemoveBepInEx();
                 await zip.ExtractArchiveAsync(FileManager.Instance.GameRootDir.FullName);
                 ShowNoEx = FileManager.Instance.NoBepInEx ? Visibility.Visible : Visibility.Collapsed;
-                BepVersion = FileManager.Instance.BepVersion;
+                BepVersion = FileManager.Instance.ActiveBepVersion;
                 MessageBox.Show("安装完成");
             }
             catch (Exception ex)
@@ -291,7 +353,7 @@ namespace CSUL.ViewModels.ModViewModels
                     BepData = GetBepDownloadData();
                     await Task.Delay(500);
                     ShowNoEx = FileManager.Instance.NoBepInEx ? Visibility.Visible : Visibility.Collapsed;
-                    BepVersion = FileManager.Instance.BepVersion;
+                    BepVersion = FileManager.Instance.ActiveBepVersion;
                 }
             }
         }
@@ -311,7 +373,7 @@ namespace CSUL.ViewModels.ModViewModels
                 MessageBox.Show("还没有安装模组", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
-            Version? knownBepVersion = FileManager.Instance.BepVersion;
+            Version? knownBepVersion = FileManager.Instance.ActiveBepVersion;
             if (knownBepVersion is null)
             {
                 MessageBox.Show("BepInEx版本信息获取失败", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -361,6 +423,25 @@ namespace CSUL.ViewModels.ModViewModels
 
         #region ---私有方法---
 
+        private FileSystemInfo? RenameFileOrDir(FileSystemInfo? origin, string newname)
+        {
+            if (origin == null || !origin.Exists) { return null; }
+            string? destParent = Path.GetDirectoryName(origin.FullName);
+            if (string.IsNullOrWhiteSpace(destParent)) return null;
+            string newPath = Path.Combine(destParent, newname);
+            if (origin is FileInfo file)
+            {
+                file.MoveTo(newPath);
+                return new FileInfo(newPath);
+            }
+            if (origin is DirectoryInfo dir)
+            {
+                dir.MoveTo(newPath);
+                return new DirectoryInfo(newPath);
+            }
+            return null;
+        }
+
         /// <summary>
         /// 刷新数据
         /// </summary>
@@ -368,7 +449,7 @@ namespace CSUL.ViewModels.ModViewModels
         {
             List<ModInfo> modInfos = new List<ModInfo>();
             FileInfo[] files = FileManager.Instance.ModDir.GetFiles("*.dll*");
-            modInfos.AddRange(from file in files select FromFile(file));
+            modInfos.AddRange(FromFiles(files));
             DirectoryInfo[] dirs = FileManager.Instance.ModDir.GetDirectories();
             modInfos.AddRange(FromDirectories(dirs));
             CheckDuplication(modInfos);
@@ -452,9 +533,9 @@ namespace CSUL.ViewModels.ModViewModels
             {   //备份插件 防止误删
                 FileManager.Instance.ModDir.CopyTo(Path.Combine(FileManager.TempDirPath, FileManager.Instance.ModDir.Name));
             }
-            if (FileManager.Instance.BepInExDir.Exists)
+            if (FileManager.Instance.ActiveBepInExDir.Exists)
             {
-                FileManager.Instance.BepInExDir.Delete(true);
+                FileManager.Instance.ActiveBepInExDir.Delete(true);
             }
             FileInfo dll = new(Path.Combine(FileManager.Instance.GameRootDir.FullName, "winhttp.dll"));
             if (dll.Exists) dll.Delete();
@@ -492,7 +573,7 @@ namespace CSUL.ViewModels.ModViewModels
                 var enabledSearch = fileSearch.Where(s => s.IsEnabled);
                 int searchCount = enabledSearch.Count();
                 bool duplicated = searchCount > 1;
-                foreach (var item in fileSearch)
+                foreach (ModInfo? item in fileSearch)
                 {
                     item.IsDuplicated = duplicated;
                 }
@@ -507,6 +588,19 @@ namespace CSUL.ViewModels.ModViewModels
         public static ModInfo? FromFile(FileInfo file)
         {
             return GetModFromFile(file);
+        }
+
+        /// <summary>
+        /// 从多个dll文件获取Mod信息
+        /// </summary>
+        /// <param name="file">dll文件路径</param>
+        public static IEnumerable<ModInfo> FromFiles(IEnumerable<FileInfo> files)
+        {
+            foreach (FileInfo file in files)
+            {
+                ModInfo? mod = GetModFromFile(file);
+                if (mod != null) yield return mod;
+            }
         }
 
         /// <summary>
@@ -584,6 +678,8 @@ namespace CSUL.ViewModels.ModViewModels
                         typeName = $"{_namespace}.{name}";
                         break;
                     }
+
+
                 }
             }
             if (!string.IsNullOrEmpty(typeName))

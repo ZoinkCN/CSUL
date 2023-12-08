@@ -51,6 +51,7 @@
                         <Setter Property="FontSize" Value="12" />
                     </Style>
                 </StackPanel.Resources>
+                <Button Content="{DynamicResource Switch}" Padding="10,0" Command="{Binding SwitchBepCommand}"/>
                 <Label Content="{DynamicResource BepVer}" />
                 <Label Content="{Binding BepVersion}" />
             </StackPanel>

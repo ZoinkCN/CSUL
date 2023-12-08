@@ -110,7 +110,7 @@ namespace CSUL.Models
 
             //已知版本，加快检查速度
             if (knowBepVersion is not null) bepInExVersion = knowBepVersion;
-            else bepInExVersion = FileManager.Instance.BepVersion;
+            else bepInExVersion = FileManager.Instance.ActiveBepVersion;
 
             if (modVerison is null) return BepInExCheckResult.UnkownMod;
             if (bepInExVersion is null) return BepInExCheckResult.UnknowBepInEx;
