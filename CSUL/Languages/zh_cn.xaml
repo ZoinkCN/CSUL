@@ -33,6 +33,7 @@
     <sys:String x:Key="GameDataRoot">游戏数据根目录（存储游戏数据: Map、Save等数据的目录）</sys:String>
     <sys:String x:Key="StartPar">启动参数（请勿键入程序名 如: Cities2.exe 或 start.bat）[可选]</sys:String>
     <sys:String x:Key="DevModelStart">以开发者模式启动</sys:String>
+    <sys:String x:Key="SteamCompatible">Steam兼容模式</sys:String>
     <sys:String x:Key="BepNotInstalled">未安装BepInEx</sys:String>
 
     <sys:String x:Key="DragTitle_Map">将地图拖入此处导入，或点击导入地图</sys:String>

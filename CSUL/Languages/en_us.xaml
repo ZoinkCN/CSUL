@@ -33,6 +33,7 @@
     <sys:String x:Key="GameDataRoot">Game Data Root Directory (directory where game data is stored: Map, Save, etc.)</sys:String>
     <sys:String x:Key="StartPar">Startup Parameters (do not enter program name such as Cities2.exe or start.bat)</sys:String>
     <sys:String x:Key="DevModelStart">Start In Developer Mode</sys:String>
+    <sys:String x:Key="SteamCompatible">Steam Compatible</sys:String>
     <sys:String x:Key="BepNotInstalled">BepInEx Not Installed</sys:String>
     
     <sys:String x:Key="DragTitle_Map">Drag Map File To Here To Import,Or Just Click To Import Map</sys:String>
