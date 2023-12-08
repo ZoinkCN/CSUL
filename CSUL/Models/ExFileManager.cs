@@ -15,20 +15,54 @@ namespace CSUL.Models
         /// <summary>
         /// 递归复制文件夹
         /// </summary>
-        /// <param name="dir"></param>
         /// <param name="path"></param>
-        public static void CopyTo(this DirectoryInfo dir, string path)
+        /// <param name="destPath"></param>
+        public static void CopyTo(string path, string destPath, bool overwrite = false)
+        {
+            if (!Directory.Exists(path)) throw new DirectoryNotFoundException(path);
+            CopyTo(new DirectoryInfo(path), destPath, overwrite);
+        }
+
+        /// <summary>
+        /// 递归复制文件夹
+        /// </summary>
+        public static void CopyTo(this DirectoryInfo dir, string path, bool overwrite = false)
         {
             void RecursionCopy(DirectoryInfo root, string relativePath)
             {   //递归复制
                 DirectoryInfo total = new(Path.Combine(path, relativePath));
                 if (!total.Exists) total.Create();
                 foreach (FileInfo file in root.GetFiles())
-                    file.CopyTo(Path.Combine(path, relativePath, file.Name), true);
+                    file.CopyTo(Path.Combine(path, relativePath, file.Name), overwrite);
                 foreach (DirectoryInfo dir in root.GetDirectories())
                     RecursionCopy(dir, relativePath += $"{dir.Name}\\");
             }
             RecursionCopy(dir, "");
+        }
+
+        /// <summary>
+        /// 递归获取文件夹下的所有文件
+        /// </summary>
+        public static FileInfo[] GetAllFiles(string dirPath)
+        {
+            if (!Directory.Exists(dirPath)) throw new DirectoryNotFoundException(dirPath);
+            return GetAllFiles(new DirectoryInfo(dirPath));
+        }
+
+        /// <summary>
+        /// 递归获取文件夹下的所有文件
+        /// </summary>
+        public static FileInfo[] GetAllFiles(this DirectoryInfo dir)
+        {
+            List<FileInfo> files = new();
+            void RecursionSearch(DirectoryInfo root)
+            {
+                files.AddRange(root.GetFiles());
+                foreach (DirectoryInfo dir in root.GetDirectories())
+                    RecursionSearch(dir);
+            }
+            RecursionSearch(dir);
+            return files.ToArray();
         }
 
         /// <summary>
@@ -117,5 +151,10 @@ namespace CSUL.Models
             if (modVerison.Major != bepInExVersion.Major) return BepInExCheckResult.WrongVersion;
             return BepInExCheckResult.Passed;
         }
+
+        /// <summary>
+        /// 获取当前CSUL的版本
+        /// </summary>
+        public static Version? GetNowCsulVersion() => Assembly.GetExecutingAssembly().GetName().Version;
     }
 }

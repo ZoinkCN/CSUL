@@ -1,15 +1,16 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
 namespace CSUL.Models
 {
     /// <summary>
-    /// Steam有关方法
+    /// Steam操作类
     /// </summary>
-    public static class SteamGame
+    public static class SteamManager
     {
         #region ---私有量---
 
@@ -67,6 +68,21 @@ namespace CSUL.Models
             return false;
         }
 
+        /// <summary>
+        /// 使用Steam启动目标Id应用
+        /// </summary>
+        /// <param name="appId">应用Id</param>
+        /// <param name="arguments">启动参数</param>
+        /// <param name="steamPath">Steam路径</param>
+        /// <exception cref="FileNotFoundException"></exception>
+        public static void StartApp(int appId, string? arguments = null, string? steamPath = null)
+        {
+            string steam = steamPath ?? Path.Combine(SteamPath, "steam.exe");
+            if (!File.Exists(steam)) throw new FileNotFoundException(steam);
+            if (arguments is null) Process.Start(steam, $"-applaunch {appId}");
+            else Process.Start(steam, $"-applaunch {appId} {arguments}");
+        }
+
         #endregion ---公共方法---
 
         #region ---私有方法---
@@ -94,7 +110,7 @@ namespace CSUL.Models
     }
 
     /// <summary>
-    /// 注册表未找到
+    /// 注册表未找到异常
     /// </summary>
     public class RegistryNotFoundException : Exception
     {

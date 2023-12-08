@@ -28,7 +28,7 @@ namespace CSUL.UserControls.DragFiles
         /// <summary>
         /// 要筛选的文件类型名称以及对应的文件类型
         /// </summary>
-        public Dictionary<string, List<string>> FileNameWithTypes { get; set; } = default!;
+        public DragFilesType FileNameWithTypes { get; set; } = default!;
 
         /// <summary>
         /// 要显示的图标路径
@@ -52,7 +52,7 @@ namespace CSUL.UserControls.DragFiles
             DependencyProperty.Register("DragTitle", typeof(string), typeof(DragFile), new PropertyMetadata(""));
 
         private void MouseLeftButtonUp_Event(object sender, MouseButtonEventArgs e)
-        {
+        {   //文件选择
             OpenFileDialog dialog = new()
             {
                 Title = "选择地图文件",
@@ -66,7 +66,7 @@ namespace CSUL.UserControls.DragFiles
         }
 
         private void Drop_Event(object sender, DragEventArgs e)
-        {
+        {   //文件拖入
             string[] files = DragHandel(e, FileNameWithTypes.SelectMany(x => x.Value).ToArray());
             DragEvent?.Invoke(this, new(files));
         }

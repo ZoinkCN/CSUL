@@ -11,7 +11,7 @@ namespace CSUL.Views
         public ModView()
         {
             InitializeComponent();
-            DragFile.FileNameWithTypes = DefaultDragFilesType.ZipFile;
+            DragFile.FileNameWithTypes = DefaultDragFilesType.BepModFile;
         }
     }
 }
