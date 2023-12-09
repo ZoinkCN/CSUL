@@ -5,9 +5,10 @@
     <!--#region Simple words -->
     <sys:String x:Key="StartGame">Play</sys:String>
     <sys:String x:Key="MainPage">Home</sys:String>
-    <sys:String x:Key="MapPage">Map</sys:String>
-    <sys:String x:Key="SavePage">Save</sys:String>
-    <sys:String x:Key="ModPage">Mod</sys:String>
+    <sys:String x:Key="Map">Map</sys:String>
+    <sys:String x:Key="Save">Save</sys:String>
+    <sys:String x:Key="Mod">Mod</sys:String>
+    <sys:String x:Key="Version">Version</sys:String>
     <sys:String x:Key="SettingPage">Settings</sys:String>
     <sys:String x:Key="File">Open</sys:String>
     <sys:String x:Key="Check">Check</sys:String>
@@ -22,13 +23,15 @@
     <sys:String x:Key="Enable">Enable</sys:String>
     <sys:String x:Key="Disabled">Disabled</sys:String>
     <sys:String x:Key="Duplicated">Duplicated</sys:String>
+    <sys:String x:Key="DuplicateCheck">Duplicate Check</sys:String>
     <sys:String x:Key="Enabled">Enabled</sys:String>
     <sys:String x:Key="Refresh">Refresh</sys:String>
     <sys:String x:Key="Language">Language</sys:String>
     <sys:String x:Key="SteamPath">Steam Path</sys:String>
-    <sys:String x:Key="LastModifiedTime">Last Modified Time</sys:String>
+    <sys:String x:Key="LastWriteTime">Last Modified Time</sys:String>
     <sys:String x:Key="CurrentVersion">Current Version</sys:String>
     <sys:String x:Key="LatestVersion">Latest Version</sys:String>
+    <sys:String x:Key="DataType">Data Type</sys:String>
     <sys:String x:Key="MapName">Map Name</sys:String>
     <sys:String x:Key="MapID">Map ID</sys:String>
     <sys:String x:Key="MapPath">Map Path</sys:String>

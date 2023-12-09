@@ -47,20 +47,28 @@
                     <DataTemplate>
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="200" />
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="150" />
+                                <ColumnDefinition Width="300" />
+                                <ColumnDefinition Width="130" />
+                                <ColumnDefinition Width="100" />
                                 <ColumnDefinition Width="100" />
                             </Grid.ColumnDefinitions>
                             <Label Grid.Column="0" Content="{Binding Name}" HorizontalAlignment="Center" />
                             <Label Grid.Column="1" Content="{Binding Cid}" HorizontalAlignment="Center" />
                             <Label Grid.Column="2" Content="{Binding LastWriteTime}" HorizontalAlignment="Center" />
-                            <Label Grid.Column="3" Content="{Binding DataType}" HorizontalAlignment="Center" />
+                            <Label x:Name="lbl_dataType" Grid.Column="3" Content="{DynamicResource Unknown}" HorizontalAlignment="Center" />
                             <Button Grid.Column="4" Content="{DynamicResource Delete}"
                                     Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.DeleteCommand}"
                                     CommandParameter="{Binding RelativeSource={RelativeSource Mode=Self}, Path=DataContext}" />
                         </Grid>
+                        <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding DataType}" Value="Save">
+                                <Setter TargetName="lbl_dataType" Property="Content" Value="{DynamicResource Save}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding DataType}" Value="Map">
+                                <Setter TargetName="lbl_dataType" Property="Content" Value="{DynamicResource Map}"/>
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>

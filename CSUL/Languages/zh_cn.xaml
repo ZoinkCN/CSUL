@@ -5,9 +5,10 @@
     <!--#region 短语 -->
     <sys:String x:Key="StartGame">开始游戏</sys:String>
     <sys:String x:Key="MainPage">主页</sys:String>
-    <sys:String x:Key="MapPage">地图</sys:String>
-    <sys:String x:Key="SavePage">存档</sys:String>
-    <sys:String x:Key="ModPage">模组</sys:String>
+    <sys:String x:Key="Map">地图</sys:String>
+    <sys:String x:Key="Save">存档</sys:String>
+    <sys:String x:Key="Mod">模组</sys:String>
+    <sys:String x:Key="Version">版本</sys:String>
     <sys:String x:Key="SettingPage">设置</sys:String>
     <sys:String x:Key="File">文件</sys:String>
     <sys:String x:Key="Check">检查</sys:String>
@@ -22,13 +23,15 @@
     <sys:String x:Key="Enable">启用</sys:String>
     <sys:String x:Key="Disabled">已禁用</sys:String>
     <sys:String x:Key="Duplicated">重复</sys:String>
+    <sys:String x:Key="DuplicateCheck">是否重复</sys:String>
     <sys:String x:Key="Enabled">已启用</sys:String>
     <sys:String x:Key="Refresh">刷新</sys:String>
     <sys:String x:Key="Language">语言</sys:String>
     <sys:String x:Key="SteamPath">Steam路径</sys:String>
-    <sys:String x:Key="LastModifiedTime">最后修改时间</sys:String>
+    <sys:String x:Key="LastWriteTime">最后修改时间</sys:String>
     <sys:String x:Key="CurrentVersion">当前版本</sys:String>
     <sys:String x:Key="LatestVersion">最新版本</sys:String>
+    <sys:String x:Key="DataType">数据类型</sys:String>
     <sys:String x:Key="MapName">地图名称</sys:String>
     <sys:String x:Key="MapID">地图ID</sys:String>
     <sys:String x:Key="MapPath">地图路径</sys:String>

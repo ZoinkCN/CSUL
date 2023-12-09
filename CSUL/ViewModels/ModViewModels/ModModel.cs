@@ -212,7 +212,7 @@ namespace CSUL.ViewModels.ModViewModels
             if (sender is not ModInfo data) return;
             StringBuilder sb = new();
             sb.Append($"{LanguageManager.GetString("ModName")}: ").Append(data.Name).AppendLine();
-            sb.Append($"{LanguageManager.GetString("LastModifiedTime")}: ").Append(data.LastWriteTime).AppendLine();
+            sb.Append($"{LanguageManager.GetString("LastWriteTime")}: ").Append(data.LastWriteTime).AppendLine();
             sb.Append($"{LanguageManager.GetString("ModPath")}: ").AppendLine().Append(data.ModPath).AppendLine();
             var ret = LanguageManager.MessageBox(sb.ToString(), LanguageManager.GetString("Msg_Cap_DeleteMod"), MessageBoxButton.OKCancel, MessageBoxImage.Warning);
             if (ret == MessageBoxResult.OK)

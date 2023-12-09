@@ -29,7 +29,7 @@ namespace CSUL.ViewModels.MapViewModels
                 StringBuilder sb = new();
                 sb.Append($"{LanguageManager.GetString(data.DataType == Models.Enums.GameDataFileType.Map ? "MapName" : "SaveName")}: ").Append(data.Name).AppendLine();
                 sb.Append($"{LanguageManager.GetString(data.DataType == Models.Enums.GameDataFileType.Map ? "MapID" : "SaveID")}: ").Append(data.Cid).AppendLine();
-                sb.Append($"{LanguageManager.GetString("LastModifiedTime")}: ").Append(data.LastWriteTime).AppendLine();
+                sb.Append($"{LanguageManager.GetString("LastWriteTime")}: ").Append(data.LastWriteTime).AppendLine();
                 sb.Append($"{LanguageManager.GetString(data.DataType == Models.Enums.GameDataFileType.Map ? "MapPath" : "SavePath")}: ").AppendLine().Append(data.FilePath).AppendLine();
                 var ret = LanguageManager.MessageBox(sb.ToString(), LanguageManager.GetString(data.DataType == Models.Enums.GameDataFileType.Map ? "DeleteMap" : "DeleteSave"), MessageBoxButton.OKCancel, MessageBoxImage.Warning);
                 if (ret == MessageBoxResult.OK)

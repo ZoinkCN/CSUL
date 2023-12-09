@@ -25,7 +25,7 @@ namespace CSUL.Models
                 using StreamReader reader = new(File.OpenRead(cidPath));
                 Cid = reader.ReadToEnd();
             }
-            else { Cid = "未找到cid文件"; }
+            else { Cid = "?"; }
             string name = Path.GetFileName(path);
             Name = name[..name.LastIndexOf('.')];
             LastWriteTime = File.GetLastWriteTime(path).ToString("yyyy-MM-dd-HH:mm:ss");

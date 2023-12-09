@@ -29,7 +29,7 @@ namespace CSUL.ViewModels.SaveViewModels
                 StringBuilder sb = new();
                 sb.Append($"{LanguageManager.GetString("SaveName")}: ").Append(data.Name).AppendLine();
                 sb.Append($"{LanguageManager.GetString("SaveID")}: ").Append(data.Cid).AppendLine();
-                sb.Append($"{LanguageManager.GetString("LastModifiedTime")}: ").Append(data.LastWriteTime).AppendLine();
+                sb.Append($"{LanguageManager.GetString("LastWriteTime")}: ").Append(data.LastWriteTime).AppendLine();
                 sb.Append($"{LanguageManager.GetString("SavePath")}: ").AppendLine().Append(data.FilePath).AppendLine();
                 var ret = LanguageManager.MessageBox(sb.ToString(), LanguageManager.GetString("DeleteSave"), MessageBoxButton.OKCancel, MessageBoxImage.Warning);
                 if (ret == MessageBoxResult.OK)
