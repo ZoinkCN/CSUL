@@ -349,7 +349,7 @@ namespace CSUL.ViewModels.ModViewModels
                 try
                 {
                     //检查单个模组
-                    BepInExCheckResult ret = ExFileManager.ChickModBepInExVersioin(item.ModPath,
+                    BepInExCheckResult ret = ExFileManager.CheckModBepInExVersioin(item.ModPath,
                         out Version? modVersion, out Version? bepVersion, item.IsSingleFile, knownBepVersion);
                     switch (ret)
                     {
@@ -414,7 +414,7 @@ namespace CSUL.ViewModels.ModViewModels
                     if (package.IsEempty) throw new Exception(LanguageManager.GetString("PackageEmpty"));
                     string name = Path.GetFileName(path);
                     name = name[..name.LastIndexOf('.')];
-                    switch (ExFileManager.ChickModBepInExVersioin(package.FullName, out Version? modVersion, out Version? bepVersion))
+                    switch (ExFileManager.CheckModBepInExVersioin(package.FullName, out Version? modVersion, out Version? bepVersion))
                     {
                         case BepInExCheckResult.Passed:
                             break;

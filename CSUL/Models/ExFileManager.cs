@@ -136,7 +136,7 @@ namespace CSUL.Models
         /// <param name="isFile">是否为单个文件</param>
         /// <param name="knowBepVersion">已知的BepInEx版本号</param>
         /// <returns></returns>
-        public static BepInExCheckResult ChickModBepInExVersioin(string path, out Version? modVerison, out Version? bepInExVersion, bool isFile = false, Version? knowBepVersion = null)
+        public static BepInExCheckResult CheckModBepInExVersioin(string path, out Version? modVerison, out Version? bepInExVersion, bool isFile = false, Version? knowBepVersion = null)
         {
             //区分单文件和子文件夹模组
             if (isFile) modVerison = GetFileModVersion(path);
