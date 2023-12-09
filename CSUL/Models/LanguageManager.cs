@@ -9,6 +9,7 @@ using System.Resources;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using WPFCustomMessageBox;
 
 namespace CSUL.Models
 {
@@ -21,6 +22,7 @@ namespace CSUL.Models
         /// 配置文件路径
         /// </summary>
         public static readonly string ConfigPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CSUL_Lang.config");
+
         /// <summary>
         /// 可用语言字典，与语言选择下拉框绑定
         /// <para>Key:语言代码，添加新的语言是请将文件命名为正确的语言代码</para>
@@ -84,6 +86,8 @@ namespace CSUL.Models
                 {
                     resources[key] = rd[key];
                 }
+                CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(language.Replace("_", "-"));
+                Trace.WriteLine(CultureInfo.CurrentUICulture.Name);
             }
         }
         #endregion ---私有方法---
@@ -112,7 +116,61 @@ namespace CSUL.Models
             }
             return new ReadOnlyDictionary<string, string>(dict);
         }
-        #endregion ---静态方法---
 
+        /// <summary>
+        /// 获取语言词典中的词条，当前语言中没有定义此词条时会从默认语言(en-US)中寻找。
+        /// <para>当前语言与默认语言中均未定义此词条时，将返回null。</para>
+        /// </summary>
+        /// <param name="key">词条的Key，大小写敏感</param>
+        /// <returns>词条内容</returns>
+        public static string GetString(string key)
+        {
+            ResourceDictionary resources = Application.Current.Resources.MergedDictionaries[0];
+            if (resources.Keys.Cast<string>().Contains(key))
+            {
+                return (string)resources[key];
+            }
+            else
+            {
+                if (Application.LoadComponent(new Uri(@"Languages\en_us.xaml", UriKind.Relative)) is ResourceDictionary defaultResources)
+                {
+                    if (defaultResources.Keys.Cast<string>().Contains(key))
+                    {
+                        return (string)resources[key];
+                    }
+                }
+            }
+            return "";
+        }
+
+        public static MessageBoxResult MessageBox(string message, string caption, MessageBoxButton button, MessageBoxImage image)
+        {
+            return button switch
+            {
+                MessageBoxButton.OK => CustomMessageBox.ShowOK(message, caption, GetString("Msg_Btn_OK"), image),
+                MessageBoxButton.OKCancel => CustomMessageBox.ShowOKCancel(message, caption, GetString("Msg_Btn_OK"), GetString("Msg_Btn_Cancel"), image),
+                MessageBoxButton.YesNoCancel => CustomMessageBox.ShowYesNoCancel(message, caption, GetString("Msg_Btn_Yes"), GetString("Msg_Btn_No"), GetString("Msg_Btn_Cancel"), image),
+                MessageBoxButton.YesNo => CustomMessageBox.ShowYesNo(message, caption, GetString("Msg_Btn_Yes"), GetString("Msg_Btn_No"), image),
+                _ => default,
+            };
+        }
+
+        public static MessageBoxResult MessageBox(string message, string caption, MessageBoxButton button)
+        {
+            return button switch
+            {
+                MessageBoxButton.OK => CustomMessageBox.ShowOK(message, caption, GetString("Msg_Btn_OK")),
+                MessageBoxButton.OKCancel => CustomMessageBox.ShowOKCancel(message, caption, GetString("Msg_Btn_OK"), GetString("Msg_Btn_Cancel")),
+                MessageBoxButton.YesNoCancel => CustomMessageBox.ShowYesNoCancel(message, caption, GetString("Msg_Btn_Yes"), GetString("Msg_Btn_No"), GetString("Msg_Btn_Cancel")),
+                MessageBoxButton.YesNo => CustomMessageBox.ShowYesNo(message, caption, GetString("Msg_Btn_Yes"), GetString("Msg_Btn_No")),
+                _ => default,
+            };
+        }
+
+        public static MessageBoxResult MessageBox(string message)
+        {
+            return CustomMessageBox.ShowOK(message, "", GetString("Msg_Btn_OK"));
+        }
+        #endregion ---静态方法---
     }
 }

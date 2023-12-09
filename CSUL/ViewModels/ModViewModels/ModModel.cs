@@ -1,22 +1,21 @@
 ﻿using CSUL.Models;
 using CSUL.UserControls.DragFiles;
 using CSUL.Windows;
-using SevenZip;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection.Metadata;
-using System.Reflection.PortableExecutable;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Text.RegularExpressions;
-using System.Globalization;
+using System.Xml.Linq;
+using System.Runtime.Loader;
+using System.Windows.Controls;
+using Mono.Cecil;
 
 namespace CSUL.ViewModels.ModViewModels
 {   //ModModel 构造函数、方法、子类
@@ -155,11 +154,11 @@ namespace CSUL.ViewModels.ModViewModels
         public ModModel()
         {
             DeleteCommand = new RelayCommand(DeleteModFile);
-            AddCommand = new RelayCommand((sender) =>
+            AddCommand = new RelayCommand(async (sender) =>
             {
-                InstallFile((sender as DragFilesEventArgs ?? throw new ArgumentNullException()).Paths);
+                await InstallFile((sender as DragFilesEventArgs ?? throw new ArgumentNullException()).Paths);
             });
-            DownloadCommand = new RelayCommand(DownloadBepInEx);
+            DownloadCommand = new RelayCommand(async (sender) => await DownloadBepInEx(sender));
             RemoveCommand = new RelayCommand(RemoveBepInEx);
             CheckMods = new RelayCommand(CheckModCompatibility);
             RefreshCommand = new RelayCommand(Refresh);
@@ -272,22 +271,22 @@ namespace CSUL.ViewModels.ModViewModels
         {
             if (sender is not ModInfo data) return;
             StringBuilder sb = new();
-            sb.Append("模组名称: ").Append(data.Name).AppendLine();
-            sb.Append("最后修改时间: ").Append(data.LastWriteTime).AppendLine();
-            sb.Append("模组路径: ").AppendLine().Append(data.ModPath).AppendLine();
-            var ret = MessageBox.Show(sb.ToString(), "删除模组", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
+            sb.Append($"{LanguageManager.GetString("ModName")}: ").Append(data.Name).AppendLine();
+            sb.Append($"{LanguageManager.GetString("LastModifiedTime")}: ").Append(data.LastWriteTime).AppendLine();
+            sb.Append($"{LanguageManager.GetString("ModPath")}: ").AppendLine().Append(data.ModPath).AppendLine();
+            var ret = LanguageManager.MessageBox(sb.ToString(), LanguageManager.GetString("Msg_Cap_DeleteMod"), MessageBoxButton.OKCancel, MessageBoxImage.Warning);
             if (ret == MessageBoxResult.OK)
             {
                 FileSystemInfo mod = data.IsSingleFile ? new FileInfo(data.ModPath) : new DirectoryInfo(data.ModPath);
                 try
                 {
                     mod.Delete();
-                    MessageBox.Show("删除成功");
+                    LanguageManager.MessageBox(LanguageManager.GetString("Msg_DeleteComlete"));
                 }
                 catch (Exception ex)
                 {
 
-                    MessageBox.Show(ExceptionManager.GetExMeg(ex), "文件删除失败",
+                    LanguageManager.MessageBox(ExceptionManager.GetExMeg(ex), LanguageManager.GetString("Msg_Cap_DeleteFailed"),
                         MessageBoxButton.OK, MessageBoxImage.Error);
                 }
                 RefreshData();
@@ -299,28 +298,29 @@ namespace CSUL.ViewModels.ModViewModels
         /// </summary>
         /// <param name="sender"></param>
         /// <returns></returns>
-        private async void DownloadBepInEx(object? sender)
+        private async Task DownloadBepInEx(object? sender)
         {
             try
             {
                 if (sender is not BepItemData data) return;
-                if (MessageBox.Show(data.Version, "确认", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.No) return;
-                string path = Path.Combine(FileManager.TempDirPath, data.Name);
+                if (LanguageManager.MessageBox(data.Version, LanguageManager.GetString("Msg_Cap_Confirm"), MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.No) return;
+                string path = Path.Combine(_tempDirPath, data.Name);
                 FileInfo file = new(path);
                 if (file.Directory?.Exists is true) file.Directory.Delete(true);
                 if (file.Exists) file.Delete();
                 if (file.Directory?.Exists is false) file.Directory?.Create();
                 await WebManager.DownloadFromUri(data.Uri, path);
-                SevenZipExtractor zip = new(path);
+                using TempPackage package = new();
+                await package.Decompress(path);
                 RemoveBepInEx();
-                await zip.ExtractArchiveAsync(FileManager.Instance.GameRootDir.FullName);
+                ExFileManager.CopyTo(package.FullName, FileManager.Instance.GameRootDir.FullName, true);
                 ShowNoEx = FileManager.Instance.NoBepInEx ? Visibility.Visible : Visibility.Collapsed;
-                BepVersion = FileManager.Instance.ActiveBepVersion;
-                MessageBox.Show("安装完成");
+                BepVersion = FileManager.Instance.BepVersion;
+                LanguageManager.MessageBox(LanguageManager.GetString("Msg_Cap_InstallComlete"));
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ExceptionManager.GetExMeg(ex), "安装失败", MessageBoxButton.OK, MessageBoxImage.Error);
+                LanguageManager.MessageBox(ExceptionManager.GetExMeg(ex), LanguageManager.GetString("Msg_Cap_InstallFailed"), MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -329,23 +329,33 @@ namespace CSUL.ViewModels.ModViewModels
         /// </summary>
         private async void RemoveBepInEx(object? sender)
         {
-            MessageBoxResult ret = MessageBox.Show("确认移除BepInEx?\n插件将会临时备份至tempFile文件夹", "警告",
-                MessageBoxButton.OKCancel, MessageBoxImage.Warning);
+            MessageBoxResult ret = LanguageManager.MessageBox(
+                LanguageManager.GetString("Msg_BepInExDeleteConfirm"),
+                LanguageManager.GetString("Msg_Cap_Warning"),
+                MessageBoxButton.OKCancel,
+                MessageBoxImage.Warning);
             if (ret == MessageBoxResult.OK)
             {
                 try
                 {
                     RemoveBepInEx();
-                    MessageBoxResult ret2 = MessageBox.Show("BepInEx移除成功\n是否打开插件备份文件夹", "提示",
-                        MessageBoxButton.YesNo, MessageBoxImage.Information);
+                    MessageBoxResult ret2 = LanguageManager.MessageBox(
+                        LanguageManager.GetString("Msg_BepInExDeleteComplete"),
+                        LanguageManager.GetString("Msg_Cap_Information"),
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Information);
                     if (ret2 == MessageBoxResult.Yes)
                     {
-                        Process.Start("Explorer.exe", FileManager.TempDirPath);
+                        Process.Start("Explorer.exe", _tempDirPath);
                     }
                 }
                 catch (Exception e)
                 {
-                    MessageBox.Show(ExceptionManager.GetExMeg(e), "移除失败", MessageBoxButton.OK, MessageBoxImage.Error);
+                    LanguageManager.MessageBox(
+                        ExceptionManager.GetExMeg(e),
+                        LanguageManager.GetString("Msg_Cap_RemoveFailed"),
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
                 }
                 finally
                 {
@@ -364,18 +374,30 @@ namespace CSUL.ViewModels.ModViewModels
         {
             if (ModData is null)
             {
-                MessageBox.Show("模组安装信息获取失败", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                LanguageManager.MessageBox(
+                    LanguageManager.GetString("Msg_GetModInfoFailed"),
+                    LanguageManager.GetString("Msg_Cap_Error"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
                 return;
             }
             if (ModData.Count < 1)
             {
-                MessageBox.Show("还没有安装模组", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                LanguageManager.MessageBox(
+                    LanguageManager.GetString("Msg_NoModInstalled"),
+                    LanguageManager.GetString("Msg_Cap_Information"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
                 return;
             }
             Version? knownBepVersion = FileManager.Instance.ActiveBepVersion;
             if (knownBepVersion is null)
             {
-                MessageBox.Show("BepInEx版本信息获取失败", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                LanguageManager.MessageBox(
+                    LanguageManager.GetString("Msg_GetBepInExInfoFailed"),
+                    LanguageManager.GetString("Msg_Cap_Error"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
                 return;
             }
 
@@ -387,18 +409,18 @@ namespace CSUL.ViewModels.ModViewModels
                 try
                 {
                     //检查单个模组
-                    BepInExCheckResult ret = ExFileManager.ChickModBepInExVersioin(item.ModPath,
+                    BepInExCheckResult ret = ExFileManager.CheckModBepInExVersioin(item.ModPath,
                         out Version? modVersion, out Version? bepVersion, item.IsSingleFile, knownBepVersion);
                     switch (ret)
                     {
                         case BepInExCheckResult.WrongVersion:
                             wrong.Add(i);
-                            allData[i] = (ModData[i].Name, modVersion?.ToString() ?? "Unknow");
+                            allData[i] = (ModData[i].Name, modVersion?.ToString() ?? LanguageManager.GetString("Unknown"));
                             break;
 
                         case BepInExCheckResult.Passed:
                             pass.Add(i);
-                            allData[i] = (ModData[i].Name, modVersion?.ToString() ?? "Unknow");
+                            allData[i] = (ModData[i].Name, modVersion?.ToString() ?? LanguageManager.GetString("Unknown"));
                             break;
 
                         default: throw new Exception();
@@ -407,7 +429,7 @@ namespace CSUL.ViewModels.ModViewModels
                 catch
                 {
                     unknow.Add(i);
-                    allData[i] = (ModData[i].Name, "Unknow");
+                    allData[i] = (ModData[i].Name, LanguageManager.GetString("Unknown"));
                 }
             }
             ModCompatibilityBox.ShowBox(allData, pass, wrong, unknow);
@@ -458,65 +480,114 @@ namespace CSUL.ViewModels.ModViewModels
         /// <summary>
         /// 安装文件
         /// </summary>
-        private void InstallFile(string[] paths)
+        private async Task InstallFile(string[] paths)
         {
             if (!FileManager.Instance.ModDir.Exists) FileManager.Instance.ModDir.Create();
             foreach (string path in paths)
             {
                 try
                 {
-                    if (!File.Exists(path)) continue;
-                    SevenZipExtractor zip = new(path);
-                    string firstFile = zip.ArchiveFileNames.FirstOrDefault()
-                        ?? throw new Exception("该压缩包不含任何文件");
-                    if (FileManager.Instance.ModDir.GetDirectories().Any(x => x.Name == firstFile.Split('\\')[0]))
-                    {
-                        if (MessageBox.Show("已存在该文件，是否覆盖安装？", "提示", MessageBoxButton.YesNo, MessageBoxImage.Question)
-                            == MessageBoxResult.No) continue;
-                    }
-                    //得到压缩包的文件名 mod文件夹的路径
-                    string targetName = path.Split('\\').Last();
-                    targetName = targetName[..targetName.LastIndexOf('.')];
-                    string modPath = Path.Combine(FileManager.Instance.ModDir.FullName, targetName);
-                    zip.ExtractArchive(modPath);
-                    switch (ExFileManager.ChickModBepInExVersioin(modPath, out Version? modVersion, out Version? bepVersion))
+                    using TempPackage package = new();
+                    if (path.EndsWith(".dll")) await package.AddFile(path);
+                    else await package.Decompress(path);
+                    if (package.IsEempty) throw new Exception(LanguageManager.GetString("PackageEmpty"));
+                    string name = Path.GetFileName(path);
+                    name = name[..name.LastIndexOf('.')];
+                    switch (ExFileManager.CheckModBepInExVersioin(package.FullName, out Version? modVersion, out Version? bepVersion))
                     {
                         case BepInExCheckResult.Passed:
-                            MessageBox.Show($"模组 {targetName} 安装完成\n" +
-                                $"版本兼容性已检查", "安装成功", MessageBoxButton.OK, MessageBoxImage.Information);
                             break;
 
                         case BepInExCheckResult.UnkownMod:
-                            MessageBox.Show($"文件 {targetName} 已安装\n" +
-                                $"BepInEx版本: {bepVersion}\n" +
-                                "但未能成功获取模组BepInEx版本\n" +
-                                "请检查该文件是否为模组文件", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            if (LanguageManager.MessageBox(
+                                string.Format(LanguageManager.GetString("Msg_GetModBepVersionFailed"), name, bepVersion),
+                                LanguageManager.GetString("Msg_Cap_Warning"),
+                                MessageBoxButton.OKCancel,
+                                MessageBoxImage.Warning) == MessageBoxResult.Cancel)
+                            {
+                                continue;
+                            }
                             break;
 
                         case BepInExCheckResult.UnknowBepInEx:
-                            MessageBox.Show($"模组 {targetName} 已安装\n" +
-                                $"插件版本: {modVersion}\n" +
-                                "但未能获取已安装BepInEx的版本信息\n" +
-                                "请自行检查模组兼容性", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            if (LanguageManager.MessageBox(
+                                string.Format(LanguageManager.GetString("Msg_GetBepVersionFailed"), name, modVersion),
+                                LanguageManager.GetString("Msg_Cap_Warning"),
+                                MessageBoxButton.OKCancel,
+                                MessageBoxImage.Warning) == MessageBoxResult.Cancel)
+                            {
+                                continue;
+                            }
                             break;
 
                         case BepInExCheckResult.WrongVersion:
-                            MessageBox.Show($"模组 {targetName} 已安装" +
-                                $"但模组版本与BepInEx不符\n" +
-                                $"BepInEx版本: {bepVersion}\n" +
-                                $"插件版本: {modVersion}\n" +
-                                $"该情况可能会引发兼容性问题", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            if (LanguageManager.MessageBox(
+                                string.Format(LanguageManager.GetString("Msg_GetBepVersionFailed"), name, bepVersion, modVersion),
+                                LanguageManager.GetString("Msg_Cap_Warning"),
+                                MessageBoxButton.OKCancel,
+                                MessageBoxImage.Warning) == MessageBoxResult.Cancel)
+                            {
+                                continue;
+                            }
                             break;
 
                         default:
-                            MessageBox.Show("未知兼容性检查结果");
+                            if (LanguageManager.MessageBox(
+                                LanguageManager.GetString("Msg_UnknownCompatibility"),
+                                LanguageManager.GetString("Msg_Cap_Warning"),
+                                MessageBoxButton.OKCancel,
+                                MessageBoxImage.Warning) == MessageBoxResult.Cancel)
+                            {
+                                continue;
+                            }
                             break;
                     }
+                    string targetDir = FileManager.Instance.ModDir.FullName;
+                    if (package.OnlySingleFile)
+                    {
+                        if (File.Exists(Path.Combine(targetDir, $"{name}.dll")))
+                        {
+                            if (LanguageManager.MessageBox(
+                                string.Format(LanguageManager.GetString("Msg_ModExists"), name),
+                                LanguageManager.GetString("Msg_Cap_Information"),
+                                MessageBoxButton.OKCancel,
+                                MessageBoxImage.Information) == MessageBoxResult.Cancel)
+                            {
+                                continue;
+                            }
+                        }
+                        File.Copy(path, Path.Combine(targetDir, $"{name}.dll"), true);
+                    }
+                    else
+                    {
+                        if (Directory.Exists(Path.Combine(targetDir, name)))
+                        {
+                            if (LanguageManager.MessageBox(
+                                string.Format(LanguageManager.GetString("Msg_ModExists"), name),
+                                LanguageManager.GetString("Msg_Cap_Information"),
+                                MessageBoxButton.OKCancel,
+                                MessageBoxImage.Information) == MessageBoxResult.Cancel)
+                            {
+                                continue;
+                            }
+                        }
+                        Directory.CreateDirectory(Path.Combine(targetDir, name));
+                        Directory.Delete(Path.Combine(targetDir, name));
+                        ExFileManager.CopyTo(package.FullName, Path.Combine(targetDir, name));
+                    }
+                    LanguageManager.MessageBox(
+                        string.Format(LanguageManager.GetString("Msg_ModInstallComplete"), name),
+                        LanguageManager.GetString("Msg_Cap_Information"),
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
                 }
                 catch (Exception e)
                 {
-                    MessageBox.Show($"插件{path}安装失败，原因: \n{ExceptionManager.GetExMeg(e)}", "安装出错",
-                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    LanguageManager.MessageBox(
+                        string.Format(LanguageManager.GetString("Msg_ModInstallFailed"), path, ExceptionManager.GetExMeg(e)),
+                        LanguageManager.GetString("Msg_Cap_Error"),
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
                 }
             }
             RefreshData();
@@ -530,7 +601,7 @@ namespace CSUL.ViewModels.ModViewModels
             if (!FileManager.Instance.GameRootDir.Exists) return;
             if (FileManager.Instance.ModDir.Exists)
             {   //备份插件 防止误删
-                FileManager.Instance.ModDir.CopyTo(Path.Combine(FileManager.TempDirPath, FileManager.Instance.ModDir.Name));
+                FileManager.Instance.ModDir.CopyTo(Path.Combine(_tempDirPath, FileManager.Instance.ModDir.Name), true);
             }
             if (FileManager.Instance.ActiveBepInExDir.Exists)
             {
@@ -549,12 +620,17 @@ namespace CSUL.ViewModels.ModViewModels
                     select new BepItemData
                     {
                         Uri = item.Uri,
-                        Version = $"安装 {item.Version} {(item.IsBeta ? "测试版" : "正式版")}",
+                        Version = $"{LanguageManager.GetString("Install")} {item.Version} {LanguageManager.GetString((item.IsBeta ? "BetaVer" : "ReleaseVer"))}",
                         Name = item.FileName,
                         BackBrush = new SolidColorBrush(Color.FromRgb(242, 242, 242))
                     }).ToList();
         }
         #endregion ---私有方法---
+
+        #region ---私有字段---
+        private static AssemblyDependencyResolver resolver;
+        private static AssemblyLoadContext context;
+        #endregion ---私有字段---
 
         #region ---静态方法---
         /// <summary>
@@ -658,64 +734,34 @@ namespace CSUL.ViewModels.ModViewModels
         {
             if (!file.Exists)
             {
-                throw new FileNotFoundException($"\"{file.FullName}\" 文件不存在！");
+                throw new FileNotFoundException(string.Format(LanguageManager.GetString("FileNotExists"), file.FullName));
             }
 
-            string? typeName = null;
-            using (StreamReader sr = new(file.FullName))
+            using AssemblyDefinition assemblyDefinition = AssemblyDefinition.ReadAssembly(file.FullName);
+            TypeDefinition? type = assemblyDefinition.MainModule.Types.FirstOrDefault(s => s.BaseType?.Name == "BaseUnityPlugin");
+            if (type != null)
             {
-                using PEReader portableExecutableReader = new(sr.BaseStream);
-                MetadataReader metadataReader = portableExecutableReader.GetMetadataReader();
-
-                foreach (TypeDefinitionHandle typeDefHandle in metadataReader.TypeDefinitions)
+                CustomAttribute? attribute = type.CustomAttributes.FirstOrDefault(s => s.AttributeType.Name == "BepInPlugin");
+                if (attribute != null)
                 {
-                    TypeDefinition typeDef = metadataReader.GetTypeDefinition(typeDefHandle);
-                    string name = metadataReader.GetString(typeDef.Name);
-                    if (name.Contains("MyPluginInfo"))
+                    try
                     {
-                        string _namespace = metadataReader.GetString(typeDef.Namespace);
-                        typeName = $"{_namespace}.{name}";
-                        break;
+                        string guid = (string)attribute.ConstructorArguments[0].Value;
+                        string name = (string)attribute.ConstructorArguments[1].Value;
+                        string version = (string)attribute.ConstructorArguments[2].Value;
+                        ModInfo info = new(name);
+                        info.GUID = guid;
+                        info.Version = version;
+
+                        info.SetMainFile(file.FullName);
+                        info.LastWriteTime = file.LastWriteTime.ToString("yyyy-MM-dd-HH:mm:ss");
+                        if (setModPath)
+                        {
+                            info.SetModPath(file.FullName);
+                        }
+                        return info;
                     }
-
-
-                }
-            }
-            if (!string.IsNullOrEmpty(typeName))
-            {
-                Assembly asm;
-                using (FileStream stream = new(file.FullName, FileMode.Open))
-                {
-                    using MemoryStream memStream = new();
-                    int res;
-                    byte[] b = new byte[file.Length];
-                    while ((res = stream.Read(b, 0, b.Length)) > 0)
-                    {
-                        memStream.Write(b, 0, b.Length);
-                    }
-                    asm = Assembly.Load(memStream.ToArray());
-                }
-                Type? type = asm.GetType(typeName);
-                FieldInfo? nameField = type?.GetField("PLUGIN_NAME");
-                FieldInfo? versionField = type?.GetField("PLUGIN_VERSION");
-                FieldInfo? idField = type?.GetField("PLUGIN_GUID");
-                string? name = nameField?.GetRawConstantValue() as string;
-                if (!string.IsNullOrEmpty(name))
-                {
-                    ModInfo info = new(name);
-                    string? version = versionField?.GetRawConstantValue() as string;
-                    info.Version = version ?? "?";
-
-                    string? id = idField?.GetRawConstantValue() as string;
-                    info.GUID = id ?? "";
-
-                    info.SetMainFile(file.FullName);
-                    info.LastWriteTime = file.LastWriteTime.ToString("yyyy-MM-dd-HH:mm:ss");
-                    if (setModPath)
-                    {
-                        info.SetModPath(file.FullName);
-                    }
-                    return info;
+                    catch { }
                 }
             }
             return null;

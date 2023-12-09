@@ -1,12 +1,12 @@
 ﻿using CSUL.Models;
 using CSUL.UserControls.DragFiles;
-using SevenZip;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 
@@ -17,29 +17,6 @@ namespace CSUL.ViewModels.MapViewModels
     /// </summary>
     public class MapModel : BaseViewModel
     {
-        public class ItemData
-        {
-            /// <summary>
-            /// 地图Id
-            /// </summary>
-            public string Id { get; set; } = default!;
-
-            /// <summary>
-            /// 地图名称
-            /// </summary>
-            public string? Name { get; set; }
-
-            /// <summary>
-            /// 地图路径
-            /// </summary>
-            public string Path { get; set; } = default!;
-
-            /// <summary>
-            /// 最后修改时间
-            /// </summary>
-            public string LastWriteTime { get; set; } = default!;
-        }
-
         public MapModel()
         {
             //获取初始数据
@@ -48,47 +25,52 @@ namespace CSUL.ViewModels.MapViewModels
             //设定命令处理方法
             DeleteCommand = new RelayCommand((sender) =>
             {
-                if (sender is not ItemData data) return;
+                if (sender is not GameDataFileInfo data) return;
                 StringBuilder sb = new();
-                sb.Append("地图名称: ").Append(data.Name).AppendLine();
-                sb.Append("地图ID: ").Append(data.Id).AppendLine();
-                sb.Append("最后修改时间: ").Append(data.LastWriteTime).AppendLine();
-                sb.Append("地图路径: ").AppendLine().Append(data.Path).AppendLine();
-                var ret = MessageBox.Show(sb.ToString(), "删除存档", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
+                sb.Append($"{LanguageManager.GetString(data.DataType == Models.Enums.GameDataFileType.Map ? "MapName" : "SaveName")}: ").Append(data.Name).AppendLine();
+                sb.Append($"{LanguageManager.GetString(data.DataType == Models.Enums.GameDataFileType.Map ? "MapID" : "SaveID")}: ").Append(data.Cid).AppendLine();
+                sb.Append($"{LanguageManager.GetString("LastModifiedTime")}: ").Append(data.LastWriteTime).AppendLine();
+                sb.Append($"{LanguageManager.GetString(data.DataType == Models.Enums.GameDataFileType.Map ? "MapPath" : "SavePath")}: ").AppendLine().Append(data.FilePath).AppendLine();
+                var ret = LanguageManager.MessageBox(sb.ToString(), LanguageManager.GetString(data.DataType == Models.Enums.GameDataFileType.Map ? "DeleteMap" : "DeleteSave"), MessageBoxButton.OKCancel, MessageBoxImage.Warning);
                 if (ret == MessageBoxResult.OK)
                 {
                     try
                     {
-                        Directory.Delete(data.Path, true);
-                        MessageBox.Show("删除成功");
+                        data.Delete();
+                        LanguageManager.MessageBox(LanguageManager.GetString("Msg_DeleteComlete"));
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show(ExceptionManager.GetExMeg(ex), "文件删除失败",
-                            MessageBoxButton.OK, MessageBoxImage.Error);
+                        LanguageManager.MessageBox(
+                            ExceptionManager.GetExMeg(ex),
+                            LanguageManager.GetString("Msg_Cap_DeleteFailed"),
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
                     }
                     RefreshData();
                 }
             });
-            AddCommand = new RelayCommand((sender) =>
+            AddCommand = new RelayCommand(async (sender) =>
             {
-                InstallFile((sender as DragFilesEventArgs ?? throw new ArgumentNullException()).Paths);
+                await InstallFile((sender as DragFilesEventArgs ?? throw new ArgumentNullException()).Paths);
             });
+            Refresh = new RelayCommand(sender => RefreshData());
         }
 
         public ICommand AddCommand { get; }
         public ICommand DeleteCommand { get; }
         public ICommand OpenFolder { get; } = new RelayCommand((sender) => Process.Start("Explorer.exe", FileManager.Instance.MapDir.FullName));
+        public ICommand Refresh { get; }
 
-        private List<ItemData> mapData = default!;
+        private IEnumerable<GameDataFileInfo> gameData = default!;
 
-        public List<ItemData> MapData
+        public IEnumerable<GameDataFileInfo> GameData
         {
-            get => mapData;
+            get => gameData;
             set
             {
-                if (mapData == value) return;
-                mapData = value;
+                if (gameData == value) return;
+                gameData = value;
                 OnPropertyChanged();
             }
         }
@@ -96,59 +78,40 @@ namespace CSUL.ViewModels.MapViewModels
         #region ---私有方法---
 
         /// <summary>
-        /// 将地图文件夹转为条目信息
-        /// </summary>
-        private static ItemData ConvertToItemData(string path)
-        {
-            if (!Directory.Exists(path)) throw new DirectoryNotFoundException();
-            DirectoryInfo info = new(path);
-            ItemData data = new()
-            {
-                Id = info.Name,
-                Name = info.GetFiles().FirstOrDefault(x => x.Name.EndsWith(".MapData"))?.Name.Split('.')[0]
-                    ?? "*可能不是地图文件*",
-                Path = path,
-                LastWriteTime = info.LastWriteTime.ToString("yyyy-MM-dd-HH:mm:ss"),
-            };
-            return data;
-        }
-
-        /// <summary>
         /// 刷新地图数据
         /// </summary>
-        private void RefreshData() => MapData = (from dir in FileManager.Instance.MapDir.GetDirectories() select ConvertToItemData(dir.FullName)).ToList();
+        private void RefreshData() => GameData = from cid in FileManager.Instance.MapDir.GetAllFiles()
+                                                 where cid.Name.EndsWith(".cok")
+                                                 let data = new GameDataFileInfo(cid.FullName)
+                                                 select data;
 
         /// <summary>
         /// 安装文件
         /// </summary>
         /// <param name="paths"></param>
-        private void InstallFile(string[] paths)
+        private async Task InstallFile(string[] paths)
         {
             foreach (string path in paths)
             {
                 try
                 {
-                    if (!File.Exists(path)) continue;
-                    SevenZipExtractor zip = new(path);
-                    string firstFile = zip.ArchiveFileNames.FirstOrDefault()
-                        ?? throw new Exception("该压缩包不含任何文件");
-                    string? testFile = zip.ArchiveFileNames.FirstOrDefault(x => x.EndsWith(".MapData"));
-                    if (testFile is null)
-                    {
-                        if (MessageBox.Show("该文件可能不是地图文件，是否继续安装？", "提示", MessageBoxButton.YesNo, MessageBoxImage.Question)
-                            == MessageBoxResult.No) continue;
-                    }
-                    if (FileManager.Instance.MapDir.GetDirectories().Any(x => x.Name == firstFile.Split('\\')[0]))
-                    {
-                        if (MessageBox.Show("已存在该文件，是否覆盖安装？", "提示", MessageBoxButton.YesNo, MessageBoxImage.Question)
-                            == MessageBoxResult.No) continue;
-                    }
-                    zip.ExtractArchive(FileManager.Instance.MapDir.FullName);
-                    MessageBox.Show("安装完成");
+                    Models.Structs.InstalledGameDataFiles ret = await FileManager.Instance.InstallGameDataFile(path);
+                    StringBuilder builder = new();
+                    builder.Append(string.Format(LanguageManager.GetString("Msg_FileAnalyzeComplete"), Path.GetFileName(path))).AppendLine();
+                    builder.Append($"{string.Format(LanguageManager.GetString("Msg_MapImported"), ret.MapNames.Count)}: ").AppendLine();
+                    ret.MapNames.ForEach(x => builder.AppendLine(x));
+                    builder.AppendLine();
+                    builder.Append($"{string.Format(LanguageManager.GetString("Msg_SaveImported"), ret.SaveNames.Count)}: ").AppendLine();
+                    ret.SaveNames.ForEach(x => builder.AppendLine(x));
+                    LanguageManager.MessageBox(builder.ToString(), LanguageManager.GetString("Msg_Cap_Information"), MessageBoxButton.OK, MessageBoxImage.Information);
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    MessageBox.Show($"地图{path}安装失败，原因: \n{ExceptionManager.GetExMeg(e)}", "安装出错");
+                    LanguageManager.MessageBox(
+                        ExceptionManager.GetExMeg(ex, string.Format(LanguageManager.GetString("Msg_FileImportFailed"), Path.GetFileName(path))),
+                        LanguageManager.GetString("Msg_Cap_Error"),
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
                 }
             }
             RefreshData();

@@ -37,6 +37,8 @@
                 <TextBox Text="{Binding GamePath}" />
                 <Label Content="{DynamicResource GameDataRoot}"/>
                 <TextBox Text="{Binding GameData}" />
+                <Label Content="{DynamicResource SteamPath}" />
+                <TextBox Text="{Binding SteamPath}" />
                 <Label Content="{DynamicResource StartPar}"/>
                 <TextBox Text="{Binding StartArgument}" />
                 <Label Content="{DynamicResource Language}"/>
@@ -47,15 +49,15 @@
         <Border Grid.Row="1" Margin="0,5,0,0" Background="{DynamicResource DefaultBrush}" Height="150" VerticalAlignment="Bottom">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <Grid Grid.Column="0">
                     <Image Height="100" Source="/Resources/Imgs/cslbbs_logo_low.png"
                            HorizontalAlignment="Center" VerticalAlignment="Center">
                         <i:Interaction.Triggers>
                             <i:EventTrigger EventName="MouseLeftButtonUp">
-                                <i:InvokeCommandAction Command="{Binding OpenWebUri}" 
+                                <i:InvokeCommandAction Command="{Binding OpenWebUri}"
                                                        CommandParameter="https://www.cslbbs.net/" />
                             </i:EventTrigger>
                         </i:Interaction.Triggers>
@@ -65,18 +67,22 @@
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                         <i:Interaction.Triggers>
                             <i:EventTrigger EventName="MouseLeftButtonUp">
-                                <i:InvokeCommandAction Command="{Binding OpenWebUri}" 
+                                <i:InvokeCommandAction Command="{Binding OpenWebUri}"
                                                        CommandParameter="https://afdian.net/a/scifibrain" />
                             </i:EventTrigger>
                         </i:Interaction.Triggers>
                         <StackPanel.Resources>
                             <Style TargetType="Label">
-                                <Setter Property="FontSize" Value="20"/>
-                                <Setter Property="HorizontalAlignment" Value="Center"/>
-                                <Setter Property="Foreground" Value="{DynamicResource WhiteBrush}"/>
+                                <Setter Property="FontSize" Value="20" />
+                                <Setter Property="HorizontalAlignment" Value="Center" />
+                                <Setter Property="Foreground" Value="{DynamicResource WhiteBrush}" />
                             </Style>
                         </StackPanel.Resources>
-                        <Label HorizontalAlignment="Center">Version 1.0.0.0</Label>
+                        <!--Version-->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Label Padding="0" Content="Version " />
+                            <Label Content="{Binding CsulVersion}" Padding="0" />
+                        </StackPanel>
                         <Label HorizontalAlignment="Center">By 科幻大脑</Label>
                         <Label FontSize="16" HorizontalAlignment="Center">
                             <TextBlock TextDecorations="Underline" Text="{DynamicResource vMe50}"/>

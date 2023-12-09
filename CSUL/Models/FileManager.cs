@@ -1,8 +1,12 @@
-﻿using System;
+﻿using CSUL.Models.Structs;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
+using WPFCustomMessageBox;
 
 namespace CSUL.Models
 {
@@ -18,19 +22,23 @@ namespace CSUL.Models
         }
 
         /// <summary>
-        /// 配置文件路径
-        /// </summary>
-        public static readonly string ConfigPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CSUL.config");
-
-        /// <summary>
         /// 临时文件夹路径
         /// </summary>
-        public static readonly string TempDirPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tempFile");
+        private static readonly string _tempDirPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tempFile");
+
+        #region ---公共静态属性---
+
+        /// <summary>
+        /// 配置文件路径
+        /// </summary>
+        public static string ConfigPath { get; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CSUL.config");
 
         /// <summary>
         /// 获取<see cref="FileManager"/>实例
         /// </summary>
         public static FileManager Instance { get; } = new();
+
+        #endregion ---公共静态属性---
 
         #region ---构造函数---
 
@@ -53,7 +61,7 @@ namespace CSUL.Models
             try
             {
                 //得到游戏数据文件路径
-                string gameData, gameRoot;
+                string gameData, gameRoot; 
                 try
                 {   //尝试自动获取数据路径
                     string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
@@ -63,21 +71,27 @@ namespace CSUL.Models
                 }
                 catch (Exception e)
                 {   //获取失败，创建虚假目录，防止程序崩溃
-                    MessageBox.Show($"原因:\n{e.Message}\n请手动设定目录", "游戏数据目录获取失败",
-                        MessageBoxButton.OK, MessageBoxImage.Warning);
-                    gameData = Path.Combine(TempDirPath, "fakeData");
+                    LanguageManager.MessageBox(
+                        string.Format(LanguageManager.GetString("Msg_File_DirectoryNotFound"), e.Message),
+                        LanguageManager.GetString("Msg_Cap_File_GameDataNotFound"),
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+                    gameData = Path.Combine(_tempDirPath, "fakeData");
                     if (!Directory.Exists(gameData)) Directory.CreateDirectory(gameData);
                 }
 
                 try
                 {   //尝试自动获取游戏根目录
-                    gameRoot = SteamGame.GetGameInstallPath("Cities Skylines II");
+                    gameRoot = SteamManager.GetGameInstallPath("Cities Skylines II");
                 }
                 catch (Exception e)
                 {   //获取失败，创建虚假目录，防止程序崩溃
-                    MessageBox.Show($"原因:\n{e.Message}\n请手动设定目录", "游戏安装目录获取失败",
-                        MessageBoxButton.OK, MessageBoxImage.Warning);
-                    gameRoot = Path.Combine(TempDirPath, "fakeRoot");
+                    LanguageManager.MessageBox(
+                        string.Format(LanguageManager.GetString("Msg_File_DirectoryNotFound"), e.Message),
+                        LanguageManager.GetString("Msg_Cap_File_GameNotFound"),
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+                    gameRoot = Path.Combine(_tempDirPath, "fakeRoot");
                     if (!Directory.Exists(gameData)) Directory.CreateDirectory(gameData);
                 }
                 //初始化各文件夹信息对象
@@ -86,7 +100,11 @@ namespace CSUL.Models
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ExceptionManager.GetExMeg(ex), "FileManager加载错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                LanguageManager.MessageBox(
+                    ExceptionManager.GetExMeg(ex),
+                    LanguageManager.GetString("Msg_Cap_FileManagerError"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
             }
         }
 
@@ -210,7 +228,32 @@ namespace CSUL.Models
                     FileInfo? bepFile = coreDir.GetFiles().FirstOrDefault(x =>
                         x.Name.StartsWith("BepInEx") && x.Name.EndsWith(".dll"));
                     if (bepFile == null) return null;
-                    
+                    //Assembly assembly = Assembly.LoadFrom(bepFile.FullName);
+                    //AssemblyName? bep = assembly.GetReferencedAssemblies().FirstOrDefault(x =>
+                    //    x.Name?.Contains("BepInEx") is true);
+                    //Version? version = bep?.Version;
+
+                    //下面这种方法比较高效
+                    //AssemblyName? bep = assembly.GetReferencedAssemblies().FirstOrDefault(x =>
+                    //    x.Name?.Contains("BepInEx") is true);
+                    //Version? version = bep?.Version;
+
+                    //下面这种方法比较高效
+                    //AssemblyName? bep = assembly.GetReferencedAssemblies().FirstOrDefault(x =>
+                    //    x.Name?.Contains("BepInEx") is true);
+                    //Version? version = bep?.Version;
+
+                    //下面这种方法比较高效
+                    //AssemblyName? bep = assembly.GetReferencedAssemblies().FirstOrDefault(x =>
+                    //    x.Name?.Contains("BepInEx") is true);
+                    //Version? version = bep?.Version;
+
+                    //下面这种方法比较高效
+                    //AssemblyName? bep = assembly.GetReferencedAssemblies().FirstOrDefault(x =>
+                    //    x.Name?.Contains("BepInEx") is true);
+                    //Version? version = bep?.Version;
+
+                    //下面这种方法比较高效
                     FileVersionInfo fileVersion = FileVersionInfo.GetVersionInfo(bepFile.FullName);
                     string? version = fileVersion.FileVersion;
                     return version is null ? null : new Version(version);
@@ -253,6 +296,69 @@ namespace CSUL.Models
         public string? GamePath { get; set; }
 
         #endregion ---公共属性---
+
+        #region ---公共方法---
+
+        /// <summary>
+        /// 安装游戏数据文件（地图、存档）
+        /// </summary>
+        public async Task<InstalledGameDataFiles> InstallGameDataFile(string filePath)
+        {
+            if (!File.Exists(filePath)) throw new FileNotFoundException(filePath);
+            InstalledGameDataFiles ret = new() { MapNames = new(), SaveNames = new() };
+            using TempPackage package = new();
+            await package.Decompress(filePath);
+            IEnumerable<FileInfo> coks = ExFileManager.GetAllFiles(package.FullName).Where(x => x.Extension == ".cok");
+            foreach (FileInfo cok in coks)
+            {
+                try
+                {
+                    List<string> names;
+                    string targetPath;
+                    switch (TempPackage.GetGameDataFileType(cok.FullName))
+                    {
+                        case Enums.GameDataFileType.Save:
+                            targetPath = SaveDir.FullName;
+                            names = ret.SaveNames;
+                            break;
+
+                        case Enums.GameDataFileType.Map:
+                            targetPath = MapDir.FullName;
+                            names = ret.MapNames;
+                            break;
+
+                        default: continue;
+                    }
+                    string cokName = cok.Name;
+                    if (File.Exists(Path.Combine(targetPath, cokName))) await Task.Run(() =>
+                    {   //获得不重复的文件名
+                        string reEx = cokName[..cokName.LastIndexOf('.')];    //去除扩展名
+                        for (long i = 1; i < long.MaxValue; i++)
+                        {
+                            if (!File.Exists(Path.Combine(targetPath, $"{reEx}({i}).cok")))
+                            {
+                                cokName = $"{reEx}({i}).cok";
+                                break;
+                            }
+                        }
+                    });
+                    await Task.Run(() => File.Copy(cok.FullName, Path.Combine(targetPath, cokName), true));
+                    if (File.Exists(cok.FullName + ".cid")) await Task.Run(() => File.Copy(cok.FullName + ".cid", Path.Combine(targetPath, cokName + ".cid"), true));
+                    names.Add(cokName);
+                }
+                catch (Exception ex)
+                {
+                    LanguageManager.MessageBox(
+                        ExceptionManager.GetExMeg(ex, string.Format(LanguageManager.GetString("Msg_File_GameDataInstallFailed"), cok.Name, filePath)),
+                        LanguageManager.GetString("Msg_Error"),
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                }
+            }
+            return ret;
+        }
+
+        #endregion ---公共方法---
 
         #region ---私有方法---
 
