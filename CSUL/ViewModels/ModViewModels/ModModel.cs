@@ -16,6 +16,7 @@ using System.Xml.Linq;
 using System.Runtime.Loader;
 using System.Windows.Controls;
 using Mono.Cecil;
+using System.Text.RegularExpressions;
 
 namespace CSUL.ViewModels.ModViewModels
 {   //ModModel 构造函数、方法、子类
@@ -315,7 +316,7 @@ namespace CSUL.ViewModels.ModViewModels
                 RemoveBepInEx();
                 ExFileManager.CopyTo(package.FullName, FileManager.Instance.GameRootDir.FullName, true);
                 ShowNoEx = FileManager.Instance.NoBepInEx ? Visibility.Visible : Visibility.Collapsed;
-                BepVersion = FileManager.Instance.BepVersion;
+                BepVersion = FileManager.Instance.ActiveBepVersion;
                 LanguageManager.MessageBox(LanguageManager.GetString("Msg_Cap_InstallComlete"));
             }
             catch (Exception ex)
