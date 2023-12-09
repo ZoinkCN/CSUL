@@ -135,7 +135,6 @@ namespace CSUL.ViewModels.ModViewModels
         }
         #endregion ---Mod信息类---
 
-
         #region ---BepInEx信息条目---
 
         public class BepItemData
