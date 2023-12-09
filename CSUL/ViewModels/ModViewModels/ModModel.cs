@@ -548,11 +548,6 @@ namespace CSUL.ViewModels.ModViewModels
         }
         #endregion ---私有方法---
 
-        #region ---私有字段---
-        private static AssemblyDependencyResolver resolver;
-        private static AssemblyLoadContext context;
-        #endregion ---私有字段---
-
         #region ---静态方法---
         /// <summary>
         /// 检查GUID对应的mod是否重复
