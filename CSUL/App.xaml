@@ -6,9 +6,9 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary>
-                    <!--此处留空，添加资源请放下面-->
+                    <!--此处只放默认语言文件，添加其他资源请放下面-->
                     <ResourceDictionary.MergedDictionaries>
-
+                        <ResourceDictionary Source="Languages/en_us.xaml" />
                     </ResourceDictionary.MergedDictionaries>
                 </ResourceDictionary>
 
