@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using WPFCustomMessageBox;
 
 namespace CSUL
 {
@@ -27,38 +28,50 @@ namespace CSUL
             AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
             {
                 StringBuilder builder = new();
-                builder.AppendLine("未捕获全局异常");
-                builder.AppendLine($"异常类型: {e.ExceptionObject.GetType().Name}");
-                builder.AppendLine($"运行状态: {(e.IsTerminating ? "内核即将终止" : "内核正常运行")}");
-                builder.AppendLine($"异常对象: {sender?.GetType().FullName ?? "Unknow"}");
-                builder.AppendLine($"异常程序: {sender?.GetType().AssemblyQualifiedName ?? "Unknow"}");
-                MessageBox.Show(ExceptionManager.GetExMeg(e.ExceptionObject as Exception, builder.ToString())
-                    , "未捕获全局异常", MessageBoxButton.OK, MessageBoxImage.Error);
+                builder.AppendLine(LanguageManager.GetString("ExceptionNotCatch"));
+                builder.AppendLine($"{LanguageManager.GetString("ExceptionType")}: {e.ExceptionObject.GetType().Name}");
+                builder.AppendLine($"{LanguageManager.GetString("AppStatus")}: {(e.IsTerminating ? LanguageManager.GetString("AppStatus_Quit") : LanguageManager.GetString("AppStatus_Normal"))}");
+                builder.AppendLine($"{LanguageManager.GetString("ExceptionObject")}: {sender?.GetType().FullName ?? LanguageManager.GetString("Unknown")}");
+                builder.AppendLine($"{LanguageManager.GetString("ExceptionAssembly")}: {sender?.GetType().AssemblyQualifiedName ?? LanguageManager.GetString("Unknown")}");
+                LanguageManager.MessageBox(
+                    ExceptionManager.GetExMeg(e.ExceptionObject as Exception, builder.ToString()),
+                    LanguageManager.GetString("ExceptionNotCatch"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
             };
 
             //Task线程异常捕获
             TaskScheduler.UnobservedTaskException += (sender, e) =>
             {
                 StringBuilder builder = new();
-                builder.AppendLine("未捕获Task异常");
-                builder.AppendLine($"异常类型: {e.Exception.GetType().Name}");
-                builder.AppendLine($"异常对象: {sender?.GetType().FullName}");
-                builder.AppendLine($"异常程序: {sender?.GetType().AssemblyQualifiedName}");
-                MessageBox.Show(ExceptionManager.GetExMeg(e.Exception, builder.ToString())
-                    , "未捕获Task异常", MessageBoxButton.OK, MessageBoxImage.Error);
+                builder.AppendLine(LanguageManager.GetString("TaskExceptionNotCatch"));
+                builder.AppendLine($"{LanguageManager.GetString("ExceptionType")}: {e.Exception.GetType().Name}");
+                builder.AppendLine($"{LanguageManager.GetString("ExceptionObject")}: {sender?.GetType().FullName}");
+                builder.AppendLine($"{LanguageManager.GetString("ExceptionAssembly")}: {sender?.GetType().AssemblyQualifiedName}");
+                LanguageManager.MessageBox(
+                    ExceptionManager.GetExMeg(e.Exception, builder.ToString()),
+                    LanguageManager.GetString("TaskExceptionNotCatch"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
             };
 
             Dispatcher.UnhandledException += (sender, e) =>
             {
-                MessageBox.Show(ExceptionManager.GetExMeg(e.Exception)
-                    , "未捕获调度异常", MessageBoxButton.OK, MessageBoxImage.Error);
+                LanguageManager.MessageBox(
+                    ExceptionManager.GetExMeg(e.Exception),
+                    LanguageManager.GetString("DispatcherExceptionNotCatch"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
                 e.Handled = true;
             };
 
             Dispatcher.UnhandledExceptionFilter += (sender, e) =>
             {
-                MessageBox.Show(ExceptionManager.GetExMeg(e.Exception)
-                    , "未捕获Filter异常", MessageBoxButton.OK, MessageBoxImage.Error);
+                LanguageManager.MessageBox(
+                    ExceptionManager.GetExMeg(e.Exception),
+                    LanguageManager.GetString("FilterExceptionNotCatch"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
                 e.RequestCatch = false;
             };
 
@@ -86,8 +99,10 @@ namespace CSUL
         /// </summary>
         private static void ExitProgram(int exitCode)
         {
-            MessageBoxResult ret = MessageBox.Show("确定退出吗？", "提示",
-                MessageBoxButton.OKCancel, MessageBoxImage.Question, MessageBoxResult.Cancel);
+            MessageBoxResult ret = LanguageManager.MessageBox(
+                LanguageManager.GetString("Msg_ExitConfirm"),
+                LanguageManager.GetString("Msg_Caution"),
+                MessageBoxButton.OKCancel);
             if (ret == MessageBoxResult.OK)
             {
                 FileManager.Instance.Dispose();

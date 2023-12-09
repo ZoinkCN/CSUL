@@ -1,6 +1,7 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+                    xml:space="preserve">
     <!--#region Simple words -->
     <sys:String x:Key="StartGame">Play</sys:String>
     <sys:String x:Key="MainPage">Home</sys:String>
@@ -25,6 +26,23 @@
     <sys:String x:Key="Refresh">Refresh</sys:String>
     <sys:String x:Key="Language">Language</sys:String>
     <sys:String x:Key="SteamPath">Steam Path</sys:String>
+    <sys:String x:Key="LastModifiedTime">Last Modified Time</sys:String>
+    <sys:String x:Key="CurrentVersion">Current Version</sys:String>
+    <sys:String x:Key="LatestVersion">Latest Version</sys:String>
+    <sys:String x:Key="MapName">Map Name</sys:String>
+    <sys:String x:Key="MapID">Map ID</sys:String>
+    <sys:String x:Key="MapPath">Map Path</sys:String>
+    <sys:String x:Key="DeleteMap">Delete Map</sys:String>
+    <sys:String x:Key="SaveName">Save Name</sys:String>
+    <sys:String x:Key="SaveID">Save ID</sys:String>
+    <sys:String x:Key="SavePath">Save Path</sys:String>
+    <sys:String x:Key="DeleteSave">Delete Save</sys:String>
+    <sys:String x:Key="ModName">Mod Name</sys:String>
+    <sys:String x:Key="ModPath">Mod Path</sys:String>
+    <sys:String x:Key="Unknown">Unknown</sys:String>
+    <sys:String x:Key="Install">Install</sys:String>
+    <sys:String x:Key="BetaVer">Beta</sys:String>
+    <sys:String x:Key="ReleaseVer">Release</sys:String>
     <!--#endregion-->
 
     <!--#region Long term -->
@@ -40,6 +58,9 @@
     <sys:String x:Key="DragTitle_Map">Drag Map File To Here To Import,Or Just Click To Import Map</sys:String>
     <sys:String x:Key="DragTitle_Mod">Drag Mod File To Here To Import,Or Just Click To Import Mod</sys:String>
     <sys:String x:Key="DragTitle_Save">Drag Save File To Here To Import,Or Just Click To Import Save</sys:String>
+
+    <sys:String x:Key="UpdateAvailable">There's an update for CSUL</sys:String>
+    <sys:String x:Key="GoToReleasePage">Click Ok to CSUL Release page</sys:String>
     <!--#endregion-->
 
     <!--#region Tooltips -->
@@ -51,6 +72,88 @@
     <sys:String x:Key="Mod_OpenDir">Open Mod Directory</sys:String>
 
     <sys:String x:Key="Save_OpenDir">Open Save Directory</sys:String>
+    <!--#endregion-->
+
+    <!--#region 异常处理-->
+    <sys:String x:Key="ExceptionNotCatch">Exception Uncatch</sys:String>
+    <sys:String x:Key="TaskExceptionNotCatch">Task Exception Uncatch</sys:String>
+    <sys:String x:Key="DispatcherExceptionNotCatch">Dispatcher Exception Uncatch</sys:String>
+    <sys:String x:Key="FilterExceptionNotCatch">Dispatcher Filter Exception Uncatch</sys:String>
+    <sys:String x:Key="FileNotExists">"{0}" File Not Exists！</sys:String>
+
+    <sys:String x:Key="ExceptionTime">Time</sys:String>
+    <sys:String x:Key="ExceptionType">Type</sys:String>
+    <sys:String x:Key="AppStatus">App Status</sys:String>
+    <sys:String x:Key="ExceptionObject">Object</sys:String>
+    <sys:String x:Key="ExceptionAssembly">Assembly</sys:String>
+    <sys:String x:Key="ExceptionStackTrace">StackTrace</sys:String>
+    <sys:String x:Key="ExceptionMessage">Message</sys:String>
+    <sys:String x:Key="ExceptionExtraMessage">Extra Message</sys:String>
+    <sys:String x:Key="ExceptionTargetSite">Target Site</sys:String>
+
+    <sys:String x:Key="AppStatus_Normal">App Core Will Continue</sys:String>
+    <sys:String x:Key="AppStatus_Quit">App Core Will Quit</sys:String>
+
+    <sys:String x:Key="PackageEmpty">This package is empty</sys:String>
+    <!--#endregion-->
+
+    <!--#region 消息框-->
+    <!--消息-->
+    <sys:String x:Key="Msg_ExitConfirm">Are you sure to exit?</sys:String>
+    <sys:String x:Key="Msg_File_DirectoryNotFound">Exception:&#10;{0}&#10;Please set game root manually</sys:String>
+    <sys:String x:Key="Msg_File_GameDataInstallFailed">Something went wrong while installing {0} in {1}</sys:String>
+    <sys:String x:Key="Msg_DeleteComlete">Delete Comlete</sys:String>
+    <sys:String x:Key="Msg_FileAnalyzeComplete">{0} file(s) analyzed</sys:String>
+    <sys:String x:Key="Msg_MapImported">{0} map(s) imported个</sys:String>
+    <sys:String x:Key="Msg_SaveImported">{0} save(s) imported</sys:String>
+    <sys:String x:Key="Msg_FileImportFailed">Failed to import file {0}</sys:String>
+    <sys:String x:Key="Msg_BepInExDeleteConfirm">Be sure to remove BepInEx?&#10;All plugins will be backuped to "tempFile" folder</sys:String>
+    <sys:String x:Key="Msg_BepInExDeleteComplete">BepInEx remove complete&#10;Need to open backup folder?</sys:String>
+    <sys:String x:Key="Msg_GetModInfoFailed">Failed to get mod information</sys:String>
+    <sys:String x:Key="Msg_NoModInstalled">There's no mod installed</sys:String>
+    <sys:String x:Key="Msg_GetBepInExInfoFailed">Failed to get BepInEx Version</sys:String>
+    <sys:String x:Key="Msg_GetModBepVersionFailed">File {0} installation warning&#10;BepInEx Version: {1}&#10;But failed to get mod compatible BepInEx version&#10;Please check whether the file is a mod file&#10;Still install?</sys:String>
+    <sys:String x:Key="Msg_GetBepVersionFailed">File {0} installation warning;Mod Version: {1}&#10;But failed to get installed BepInEx version&#10;Still install?</sys:String>
+    <sys:String x:Key="Msg_ModWrongBepVersion">Mod {0} installation warning&#10;Mod not compatible with this BepInEx version&#10;BepInEx Version: {1}&#10;Mod Version: {2}&#10;This will cause compatibility problem&#10;Still install?</sys:String>
+    <sys:String x:Key="Msg_UnknownCompatibility">Unknown compatibility check result&#10;Still install?</sys:String>
+    <sys:String x:Key="Msg_ModExists">Mod {0} already exists&#10;Overwrite it?</sys:String>
+    <sys:String x:Key="Msg_ModInstallComplete">Mod {0} install complete&#10;Compatibility check complete</sys:String>
+    <sys:String x:Key="Msg_ModInstallFailed">Fsiled to install mod {0}，Exception: &#10;{1}</sys:String>
+    <sys:String x:Key="Msg_SteamCaution">
+Due to Steam Verification of Cities Skylines II，a crash may occur when launching the game
+It's just normal. At present, CSUL has no way to avoid it. We hope for your understanding
+There are several solutions:
+    1. Toggle on Steam Compatible Mode, and start the game
+    2. Wait untill the Cities Skylines II crashed, and start the game with Paradox Launcher
+    3. Start game with CSUL after one succeeded launch with Steam
+    4. Set Launch Options in Steam to skip Paradox Launcher
+    5. Just start the game with Steam，not with CSUL
+OK: Close this message
+Cancel: Close and never show again
+    </sys:String>
+
+    <!--标题-->
+    <sys:String x:Key="Msg_Cap_DeleteFailed">File Delete Failed</sys:String>
+    <sys:String x:Key="Msg_Cap_FileManagerError">FileManager Loading Error</sys:String>
+    <sys:String x:Key="Msg_Cap_File_GameNotFound">Failed To Get Game Installation Directory</sys:String>
+    <sys:String x:Key="Msg_Cap_File_GameDataNotFound">Failed To Get Game Data Directory</sys:String>
+    <sys:String x:Key="Msg_Cap_SteamCaution">Steam Caution</sys:String>
+    <sys:String x:Key="Msg_Cap_GameStartError">Game Start Error</sys:String>
+    <sys:String x:Key="Msg_Cap_UpdateRemind">Update Available</sys:String>
+    <sys:String x:Key="Msg_Cap_DeleteMod">Mod Delete</sys:String>
+    <sys:String x:Key="Msg_Cap_InstallComlete">Install Complete</sys:String>
+    <sys:String x:Key="Msg_Cap_InstallFailed">Install Failed</sys:String>
+    <sys:String x:Key="Msg_Cap_RemoveFailed">Remove Failed</sys:String>
+    <sys:String x:Key="Msg_Cap_Information">Information</sys:String>
+    <sys:String x:Key="Msg_Cap_Warning">Warning</sys:String>
+    <sys:String x:Key="Msg_Cap_Error">Error</sys:String>
+    <sys:String x:Key="Msg_Cap_Confirm">Confirm</sys:String>
+
+    <!--按钮-->
+    <sys:String x:Key="Msg_Btn_OK">OK</sys:String>
+    <sys:String x:Key="Msg_Btn_Cancel">Cancel</sys:String>
+    <sys:String x:Key="Msg_Btn_Yes">Yes</sys:String>
+    <sys:String x:Key="Msg_Btn_No">No</sys:String>
     <!--#endregion-->
 
 </ResourceDictionary>

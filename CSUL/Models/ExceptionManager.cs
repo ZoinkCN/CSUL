@@ -14,17 +14,17 @@ namespace CSUL.Models
         public static string GetExMeg(Exception? ex, string? meg = null)
         {
             StringBuilder builder = new();
-            builder.AppendLine($"发生时间: {DateTime.Now:yyyy_MM_dd HH:mm:ss:ffff}");
+            builder.AppendLine($"{LanguageManager.GetString("ExceptionTime")}: {DateTime.Now:yyyy_MM_dd HH:mm:ss:ffff}");
             if (ex is not null)
             {
-                builder.AppendLine($"异常对象: {ex.Source}");
-                builder.AppendLine($"异常方法: {ex.TargetSite?.Name}");
-                builder.AppendLine($"堆栈信息: \n{ex.StackTrace}");
-                builder.AppendLine($"异常内容: {ex.Message}");
+                builder.AppendLine($"{LanguageManager.GetString("ExceptionObject")}: {ex.Source}");
+                builder.AppendLine($"{LanguageManager.GetString("ExceptionTargetSite")}: {ex.TargetSite?.Name}");
+                builder.AppendLine($"{LanguageManager.GetString("ExceptionStackTrace")}: \n{ex.StackTrace}");
+                builder.AppendLine($"{LanguageManager.GetString("ExceptionMessage")}: {ex.Message}");
             }
             if (meg is not null)
             {
-                builder.AppendLine($"附加信息: \n{meg}");
+                builder.AppendLine($"{LanguageManager.GetString("ExceptionExtraMessage")}: \n{meg}");
             }
             return builder.ToString();
         }

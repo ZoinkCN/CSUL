@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using WPFCustomMessageBox;
 
 namespace CSUL.Models
 {
@@ -54,7 +55,7 @@ namespace CSUL.Models
             try
             {
                 //得到游戏数据文件路径
-                string gameData, gameRoot;
+                string gameData, gameRoot; 
                 try
                 {   //尝试自动获取数据路径
                     string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
@@ -64,8 +65,11 @@ namespace CSUL.Models
                 }
                 catch (Exception e)
                 {   //获取失败，创建虚假目录，防止程序崩溃
-                    MessageBox.Show($"原因:\n{e.Message}\n请手动设定目录", "游戏数据目录获取失败",
-                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    LanguageManager.MessageBox(
+                        string.Format(LanguageManager.GetString("Msg_File_DirectoryNotFound"), e.Message),
+                        LanguageManager.GetString("Msg_Cap_File_GameDataNotFound"),
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
                     gameData = Path.Combine(_tempDirPath, "fakeData");
                     if (!Directory.Exists(gameData)) Directory.CreateDirectory(gameData);
                 }
@@ -76,8 +80,11 @@ namespace CSUL.Models
                 }
                 catch (Exception e)
                 {   //获取失败，创建虚假目录，防止程序崩溃
-                    MessageBox.Show($"原因:\n{e.Message}\n请手动设定目录", "游戏安装目录获取失败",
-                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    LanguageManager.MessageBox(
+                        string.Format(LanguageManager.GetString("Msg_File_DirectoryNotFound"), e.Message),
+                        LanguageManager.GetString("Msg_Cap_File_GameNotFound"),
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
                     gameRoot = Path.Combine(_tempDirPath, "fakeRoot");
                     if (!Directory.Exists(gameData)) Directory.CreateDirectory(gameData);
                 }
@@ -87,7 +94,11 @@ namespace CSUL.Models
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ExceptionManager.GetExMeg(ex), "FileManager加载错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                LanguageManager.MessageBox(
+                    ExceptionManager.GetExMeg(ex),
+                    LanguageManager.GetString("Msg_Cap_FileManagerError"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
             }
         }
 
@@ -270,7 +281,11 @@ namespace CSUL.Models
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show(ExceptionManager.GetExMeg(ex, $"{filePath}中的{cok.Name}安装时出现问题"), "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    LanguageManager.MessageBox(
+                        ExceptionManager.GetExMeg(ex, string.Format(LanguageManager.GetString("Msg_File_GameDataInstallFailed"), cok.Name, filePath)),
+                        LanguageManager.GetString("Msg_Error"),
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
                 }
             }
             return ret;

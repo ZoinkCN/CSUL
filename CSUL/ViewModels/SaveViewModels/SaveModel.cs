@@ -27,22 +27,25 @@ namespace CSUL.ViewModels.SaveViewModels
             {
                 if (sender is not GameDataFileInfo data) return;
                 StringBuilder sb = new();
-                sb.Append("存档名称: ").Append(data.Name).AppendLine();
-                sb.Append("存档ID: ").Append(data.Cid).AppendLine();
-                sb.Append("最后修改时间: ").Append(data.LastWriteTime).AppendLine();
-                sb.Append("存档路径: ").AppendLine().Append(data.FilePath).AppendLine();
-                var ret = MessageBox.Show(sb.ToString(), "删除存档", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
+                sb.Append($"{LanguageManager.GetString("SaveName")}: ").Append(data.Name).AppendLine();
+                sb.Append($"{LanguageManager.GetString("SaveID")}: ").Append(data.Cid).AppendLine();
+                sb.Append($"{LanguageManager.GetString("LastModifiedTime")}: ").Append(data.LastWriteTime).AppendLine();
+                sb.Append($"{LanguageManager.GetString("SavePath")}: ").AppendLine().Append(data.FilePath).AppendLine();
+                var ret = LanguageManager.MessageBox(sb.ToString(), LanguageManager.GetString("DeleteSave"), MessageBoxButton.OKCancel, MessageBoxImage.Warning);
                 if (ret == MessageBoxResult.OK)
                 {
                     try
                     {
                         data.Delete();
-                        MessageBox.Show("删除成功");
+                        LanguageManager.MessageBox(LanguageManager.GetString("Msg_DeleteComlete"));
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show(ExceptionManager.GetExMeg(ex), "文件删除失败",
-                            MessageBoxButton.OK, MessageBoxImage.Error);
+                        LanguageManager.MessageBox(
+                            ExceptionManager.GetExMeg(ex),
+                            LanguageManager.GetString("Msg_Cap_DeleteFailed"),
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
                     }
                     RefreshData();
                 }
@@ -94,17 +97,21 @@ namespace CSUL.ViewModels.SaveViewModels
                 {
                     Models.Structs.InstalledGameDataFiles ret = await FileManager.Instance.InstallGameDataFile(path);
                     StringBuilder builder = new();
-                    builder.Append($"文件{Path.GetFileName(path)}解析完成").AppendLine();
-                    builder.Append($"已安装地图 {ret.MapNames.Count} 个: ").AppendLine();
+                    builder.Append(string.Format(LanguageManager.GetString("Msg_FileAnalyzeComplete"), Path.GetFileName(path))).AppendLine();
+                    builder.Append($"{string.Format(LanguageManager.GetString("Msg_MapImported"), ret.MapNames.Count)}: ").AppendLine();
                     ret.MapNames.ForEach(x => builder.AppendLine(x));
                     builder.AppendLine();
-                    builder.Append($"已安装存档 {ret.SaveNames.Count} 个: ").AppendLine();
+                    builder.Append($"{string.Format(LanguageManager.GetString("Msg_SaveImported"), ret.SaveNames.Count)}: ").AppendLine();
                     ret.SaveNames.ForEach(x => builder.AppendLine(x));
-                    MessageBox.Show(builder.ToString(), $"提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                    LanguageManager.MessageBox(builder.ToString(), LanguageManager.GetString("Msg_Cap_Information"), MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show(ExceptionManager.GetExMeg(ex, $"文件{Path.GetFileName(path)}安装失败"), "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    LanguageManager.MessageBox(
+                        ExceptionManager.GetExMeg(ex, string.Format(LanguageManager.GetString("Msg_FileImportFailed"), Path.GetFileName(path))),
+                        LanguageManager.GetString("Msg_Cap_Error"),
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
                 }
             }
             RefreshData();

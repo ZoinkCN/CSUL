@@ -85,11 +85,15 @@ namespace CSUL.ViewModels
             if (version < latest)
             {
                 StringBuilder builder = new();
-                builder.Append("CSUL有新版本更新").AppendLine();
-                builder.Append("当前版本: ").Append(version).AppendLine();
-                builder.Append("最新版本: ").Append(latest).AppendLine();
-                builder.Append("点击确认跳转到CSUL发布页面");
-                MessageBoxResult ret = MessageBox.Show(builder.ToString(), "更新提示", MessageBoxButton.OKCancel, MessageBoxImage.Information);
+                builder.Append(LanguageManager.GetString("UpdateAvailable")).AppendLine();
+                builder.Append($"{LanguageManager.GetString("CurrentVersion")}: ").Append(version).AppendLine();
+                builder.Append($"{LanguageManager.GetString("LatestVersion")}: ").Append(latest).AppendLine();
+                builder.Append(LanguageManager.GetString("GoToReleasePage"));
+                MessageBoxResult ret = LanguageManager.MessageBox(
+                    builder.ToString(),
+                    LanguageManager.GetString("Msg_Cap_UpdateRemind"),
+                    MessageBoxButton.OKCancel,
+                    MessageBoxImage.Information);
                 if (ret == MessageBoxResult.OK)
                 {
                     System.Diagnostics.Process.Start("explorer.exe", "https://www.cslbbs.net/csul/");
