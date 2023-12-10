@@ -46,6 +46,7 @@
     <sys:String x:Key="Install">Install</sys:String>
     <sys:String x:Key="BetaVer">Beta</sys:String>
     <sys:String x:Key="ReleaseVer">Release</sys:String>
+    <sys:String x:Key="GameVer">Game Version: </sys:String>
     <!--#endregion-->
 
     <!--#region Long term -->

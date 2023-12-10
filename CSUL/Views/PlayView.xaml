@@ -23,6 +23,14 @@
             <ec:CButton ButtonType="Text" Foreground="{DynamicResource WhiteBrush}" Background="{DynamicResource DefaultBrush}"
                 Height="80" Width="255" Content="{DynamicResource StartGame}" FontSize="40px"
                 Command="{Binding PlayGameCommand}" IsEnabled="{Binding ButtonEnabled}" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Label Grid.Column="0" Content="{DynamicResource GameVer}" Foreground="{DynamicResource WhiteBrush}" FontSize="15"/>
+                <Label Grid.Column="1" Content="{Binding GameVersion}" Foreground="{DynamicResource WhiteBrush}" FontSize="15"/>
+            </Grid>
         </StackPanel>
     </Grid>
 </UserControl>
