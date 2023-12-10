@@ -87,7 +87,6 @@ namespace CSUL.Models
                     resources[key] = rd[key];
                 }
                 CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(language.Replace("_", "-"));
-                Trace.WriteLine(CultureInfo.CurrentUICulture.Name);
             }
         }
         #endregion ---私有方法---

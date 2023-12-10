@@ -83,6 +83,8 @@ namespace CSUL.ViewModels.PlayViewModels
             }
         }
 
+        public string? GameVersion => GameManager.GameVersion;
+
         /// <summary>
         /// 设定当前窗口
         /// </summary>

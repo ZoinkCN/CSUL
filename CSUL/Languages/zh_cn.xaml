@@ -46,6 +46,7 @@
     <sys:String x:Key="Install">安装</sys:String>
     <sys:String x:Key="BetaVer">测试版</sys:String>
     <sys:String x:Key="ReleaseVer">正式版</sys:String>
+    <sys:String x:Key="GameVer">游戏版本: </sys:String>
     <sys:String x:Key="Switch">切换</sys:String>
     <!--#endregion-->
 
